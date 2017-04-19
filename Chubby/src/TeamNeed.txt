@@ -1,0 +1,4 @@
+【编码需求说明】
+
+@Leung：需要在Net类中提供静态方法：接受Socket发送的数据
+函数签名：public static String acceptData(Socket socket)
