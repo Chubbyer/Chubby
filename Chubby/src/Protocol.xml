@@ -1,6 +1,6 @@
 <Protocols>
 	<Protocol id="HP-100" version="1.0">
 		<title>主机报告协议</title>
-		<content>该协义将Chubber报告的内容解析为Host对象,讲报告的内容以“|”分为3个字段，分别表示主机名、IP、状态</content>
+		<content>该协义将Chubbyer报告的内容解析为Host对象,讲报告的内容以“|”分为3个字段，分别表示主机名、IP、状态</content>
 	</Protocol>
 </Protocols>
