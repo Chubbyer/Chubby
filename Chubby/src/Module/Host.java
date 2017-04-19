@@ -1,5 +1,9 @@
 package Module;
 
+/*
+ * @Leung
+ * 标识数据处理机Chubber
+ */
 public class Host {
 	private String hostName;
 	private String ip;
@@ -8,6 +12,12 @@ public class Host {
 		this.hostName=hostName;
 		this.ip=ip;
 		this.status=status;
+	}
+	/*
+	 * 根据协义HP-100将Chubber报告的内容解析为Host
+	 */
+	public static Host hostParser(String info) {
+		
 	}
 	public String getHostName() {
 		return hostName;
