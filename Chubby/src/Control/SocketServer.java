@@ -22,7 +22,6 @@ public class SocketServer {
 	private Map<String, Host> hostsMap;
 	// ¼àÌý¶Ë¿ÚºÅ
 	private int port = 10000;
-
 	private SocketServer(int port) {
 		this.port = port;
 	}
