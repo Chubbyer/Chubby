@@ -1,40 +1,67 @@
 package Control;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.Date;
 
+import Module.Host;
+import Module.HostList;
+import Protocol.EC;
+import Protocol.SC;
 import Util.Net;
 
+/*
+ * @Leung
+ * 用于请求数据服务
+ */
 public class SocketClient {
-	 public static void main(String[] args) {
-         Socket socket = null;
-         InputStream is = null;
-         OutputStream os = null;
-         //服务器端IP地址
-         String serverIP = "127.0.0.1";
-         //服务器端端口号
-         int port = 10000;
-         //发送内容
-         String data = "Hello";
-         try {
-                  //建立连接
-                  socket = new Socket(serverIP,port);
-                  //发送数据
-                  Net.sentData(socket, data);
-                  //接收数据
-                  String ac=Net.acceptData(socket);
-                  //输出反馈数据
-                  System.out.println("服务器反馈：" + ac);
-         } catch (Exception e) {
-                  e.printStackTrace(); //打印异常信息
-         }finally{
-                  try {
-                           //关闭流和连接
-                           is.close();
-                           os.close();
-                           socket.close();
-                  } catch (Exception e2) {}
-         }
-}
+	private Socket socket = null;
+	private String serverIP = null;// 服务器端IP地址
+	private int port;// 服务器端端口号
+
+	public SocketClient() {
+	}
+
+	// 检查与服务器的连接
+	public String checkConnection() {
+		//注意这里nextHost结果可能没变
+		this.serverIP = HostList.nextHost().getServerIP();
+		System.out.println(this.serverIP);
+		this.port = HostList.nextHost().getPort();
+		System.out.println(this.port);
+		try {
+			socket = new Socket(serverIP, port);
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		String data = SC.CHECK_CONNECTION;
+		Net.sentData(socket, data);
+		return Net.acceptData(socket);
+	}
+
+	// 根据协议EC-300;请求301操作,id表示对应人的标识号
+	public String getOneOverview(String id) {
+		// 当前服务器（初始适配的服务器）就绪
+		for (int i = 0; i < HostList.hostsCount; i++) {
+			if (this.checkConnection().equals(SC.SERVER_OK)) {
+				String data = EC.E_301;
+				Net.sentData(socket, data);
+				System.out.println(Net.acceptData(socket));
+				return Net.acceptData(socket);
+			}
+			
+		}return null;
+	}
+
+	public static void main(String[] args) {
+		SocketClient sClient = new SocketClient();
+		System.out.println(sClient.checkConnection());
+	}
 }

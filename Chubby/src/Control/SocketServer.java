@@ -9,66 +9,65 @@ import java.util.Date;
 import java.util.Map;
 
 import Module.Host;
+import Protocol.SC;
+import Util.Net;
 
 /*
  * @Leung
- * 网络处理的服务端，用于分发任务，汇集其他处理机的数据处理结果
+ * 网络处理的服务端，响应客服机的数据请求，返回数据处理结果
  */
 public class SocketServer {
 	private ServerSocket serverSocket = null;
 	private Socket socket = null;
-	private OutputStream os = null;
-	private InputStream is = null;
-	private Map<String, Host> hostsMap;
+	private String status=SC.SERVER_OK;
+	// private Map<String, Host> hostsMap;
 	// 监听端口号
 	private int port = 10000;
-	private SocketServer(int port) {
+
+	public SocketServer(int port) {
 		this.port = port;
+	}
+	//
+	@SuppressWarnings("unused")
+	public void monitor() {
+		String receiveData=null;
+		String sendData;
+		try {
+			// 建立连接
+			this.serverSocket = new ServerSocket(port);
+			while (true) {
+				// 获得连接
+				this.socket = serverSocket.accept();
+				// 接收客户端发送内容
+				receiveData=Net.acceptData(socket);
+				System.out.println("端口："+this.port+" 收到："+receiveData);
+				if(receiveData.equals(SC.CHECK_CONNECTION))
+					Net.sentData(socket, this.status);
+				
+			}
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 	}
 
 	/*
 	 * 发送或接受数据
 	 */
 	public String swapInfo(String data) {
-		String receiveData;
-		String sendData;
-		try {
-			// 建立连接
-			this.serverSocket = new ServerSocket(port);
-			// 获得连接
-			this.socket = serverSocket.accept();
-			// 接收客户端发送内容
-			this.is = socket.getInputStream();
-			byte[] b = new byte[1024];
-			int n = is.read(b);
-			// 输出
-			System.out.println("客户端发送内容为：" + new String(b, 0, n));
-			// 向客户端发送反馈内容
-			this.os = socket.getOutputStream();
-			os.write(b, 0, n);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				// 关闭流和连接
-				os.close();
-				is.close();
-				socket.close();
-				serverSocket.close();
-			} catch (Exception e) {
-			}
-		}
+		return data;
+
 	}
 
 	/*
 	 * 检查已就绪的处理机
 	 */
 	public int checkChubbyer() {
-		Date start=new Date();
+		Date start = new Date();
 		// 建立连接
 		try {
 			serverSocket = new ServerSocket(port);
-			while(true){
+			while (true) {
 				// 获得连接
 				socket = serverSocket.accept();
 			}
@@ -80,32 +79,11 @@ public class SocketServer {
 	}
 
 	public static void main(String[] args) {
-
-		try {
-			// 建立连接
-			serverSocket = new ServerSocket(port);
-			// 获得连接
-			socket = serverSocket.accept();
-			// 接收客户端发送内容
-			is = socket.getInputStream();
-			byte[] b = new byte[1024];
-			int n = is.read(b);
-			// 输出
-			System.out.println("客户端发送内容为：" + new String(b, 0, n));
-			// 向客户端发送反馈内容
-			os = socket.getOutputStream();
-			os.write(b, 0, n);
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				// 关闭流和连接
-				os.close();
-				is.close();
-				socket.close();
-				serverSocket.close();
-			} catch (Exception e) {
-			}
-		}
+		SocketServer chubbyer=new SocketServer(10000);
+		chubbyer.monitor();
+//		SocketServer chubbyer1=new SocketServer(10001);
+//		chubbyer1.monitor();
+//		SocketServer chubbyer2=new SocketServer(10002);
+//		chubbyer2.monitor();
 	}
 }

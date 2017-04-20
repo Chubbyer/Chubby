@@ -1,6 +1,18 @@
 <Protocols>
-	<Protocol id="HP-100" version="1.0">
+	<Protocol id="HP-200" version="1.0">
 		<title>主机报告协议</title>
 		<content>该协义将Chubbyer报告的内容解析为Host对象,讲报告的内容以“|”分为3个字段，分别表示主机名、IP、状态</content>
+	</Protocol>
+	<Protocol id="SC-100" version="1.0">
+		<title>服务-客服机状态报告协议</title>
+		<content>101：请求检查连接状态</content>
+		<content>200：OK</content>
+		<content>202：ERROR</content>
+	</Protocol>
+	<Protocol id="EC-300" version="1.0">
+		<title>事务合作协议</title>
+		<content>301：获取某个人的PC使用总体情况，每天使用多少小时</content>
+		<content>302：获取某个人一般在什么时候开机</content>
+		<content>303：获取某个人一般在什么时候关机</content>
 	</Protocol>
 </Protocols>
