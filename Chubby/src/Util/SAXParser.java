@@ -59,7 +59,7 @@ class BookHandler extends DefaultHandler {
      public void startElement(String uri, String localName, String qName, 
 	     Attributes atts) throws SAXException { 
         // Using qualified name because we are not using xmlns prefixes here. 
-        if (qName.equals("Event")) { 
+        if (qName.equals("TimeCreated")) { 
            //title = true; 
         	event=new Event();
         	System.out.println(atts.getValue(0));
@@ -71,34 +71,34 @@ class BookHandler extends DefaultHandler {
      public void endElement(String namespaceURI, String localName, String qName) 
         throws SAXException { 
         // End of processing current element 
-        if (qName.equals("Event")) { 
-           //title = false; 
-        	this.list.add(event);
-        } 
-        this.tagName=null;
+//        if (qName.equals("Event")) { 
+//           //title = false; 
+//        	this.list.add(event);
+//        } 
+//        this.tagName=null;
      } 
   			
      @Override 
      public void characters(char[] ch, int start, int length) { 
         // Processing character data inside an element 
-        if (this.tagName!=null) { 
-           String data = new String(ch, start, length); 
-           //System.out.println("EventID: " + bookTitle); 
-           //lines++;
-           if(this.tagName.equals("EventID")){
-        	   this.event.setEventID(data);
-        	   System.out.println(data);
-           }
-           if(this.tagName.equals("System")){
-        	   //this.event.setTimeCreated(attributes.getValue(0));
-        	   System.out.println(data);
-           }
-           if(this.tagName.equals("Computer")){
-        	   this.event.setComputer(data);
-        	   System.out.println(data);
-           }
-           //list.add(bookTitle); 
-        } 
+//        if (this.tagName!=null) { 
+//           String data = new String(ch, start, length); 
+//           //System.out.println("EventID: " + bookTitle); 
+//           //lines++;
+//           if(this.tagName.equals("EventID")){
+//        	   this.event.setEventID(data);
+//        	   System.out.println(data);
+//           }
+//           if(this.tagName.equals("System")){
+//        	   //this.event.setTimeCreated(attributes.getValue(0));
+//        	   System.out.println(data);
+//           }
+//           if(this.tagName.equals("Computer")){
+//        	   this.event.setComputer(data);
+//        	   System.out.println(data);
+//           }
+//           //list.add(bookTitle); 
+//        } 
      } 
 			
   } 
