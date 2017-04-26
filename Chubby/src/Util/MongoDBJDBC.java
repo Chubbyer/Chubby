@@ -1,89 +1,149 @@
 package Util;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.ArrayList;
 
 import org.bson.Document;
 
+import Module.Event;
+
+import com.mongodb.BasicDBObject;
+import com.mongodb.Block;
+import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import static com.mongodb.client.model.Filters.*;
 
+/*
+ * @Leung
+ * 使用MongoDBJDBC辅助类时应首先配置好属性：ip,port,hostName(本机的主机号)
+ * 使用前先启动本地的MongoDB数据库服务
+ * 对于同一数据库的操作连接一次就够了
+ * 操作不同的数据库要重新连接
+ */
 public class MongoDBJDBC {
 	public static String ip = "localhost";
 	public static int port = 27017;
 	public static String hostName = "Leung";
-	public static String dbName = "Chubby";
+	public static MongoClient mongoClient = null;// mongodb 服务
+	public static String dbName;
 
 	// 连接到MongoDB数据库
-	public static MongoDatabase connectionMongoDB() {
+	public static void connectionMongoDB() {
 		try {
 			// 连接到 mongodb 服务
 			@SuppressWarnings("resource")
 			MongoClient mongoClient = new MongoClient(MongoDBJDBC.ip,
 					MongoDBJDBC.port);
-			// 连接到数据库
-			MongoDatabase mongoDatabase = mongoClient
-					.getDatabase(MongoDBJDBC.dbName);
-			return mongoDatabase;
+			MongoDBJDBC.mongoClient = mongoClient;
 		} catch (Exception e) {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
-			return null;
 		}
 	}
 
-	// 创建MonngoDB集合
-	public static void createCollection(String colleName) {
-		MongoDBJDBC.connectionMongoDB().createCollection(colleName);
-		MongoDBJDBC.writeLog("创建了集合" + colleName);
+	// 关闭数据库连接
+	public static void closeMongoDB() {
+		MongoDBJDBC.mongoClient.close();
+		MongoDBJDBC.mongoClient = null;
+	}
+
+	// 在指定的数据库下创建MonngoDB集合
+	public static void createCollection(String dbName, String colleName) {
+		if (MongoDBJDBC.mongoClient != null) {
+			// 连接到数据库并创建集合
+			MongoDBJDBC.mongoClient.getDatabase(dbName).createCollection(
+					colleName);
+			MongoDBJDBC.writeLog(dbName, "创建了集合" + colleName);
+		} else {
+			System.out.println("MongoDB服务未打开");
+		}
 	}
 
 	// 写操作日志到MongoDB数据库的myLogs集合中
-	private static void writeLog(String info) {
+	private static void writeLog(String dbName, String info) {
 		try {
-			Date d = new Date();
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			String nowTime = sdf.format(d);
+			String nowTime = TimeParser.getNowTimeStr();
 			String logString = nowTime + " " + info;
-			Document document = new Document("author", MongoDBJDBC.hostName).append("info",
-					logString);
-			MongoCollection<Document> collection = MongoDBJDBC
-					.connectionMongoDB().getCollection("myLogs");
+			Document document = new Document("author", MongoDBJDBC.hostName)
+					.append("info", logString);
+			MongoCollection<Document> collection = MongoDBJDBC.mongoClient
+					.getDatabase(dbName).getCollection("myLogs");
 			collection.insertOne(document);
 		} catch (Exception e) {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
 		}
 	}
 
+	/*
+	 * 在指定的数据库、集合中插入Event的JSON描述
+	 */
+	public static void insertEvent(String dbName, String colleName, Event event) {
+		if (MongoDBJDBC.mongoClient != null) {
+			Document document = new Document("i", event.getI()).append(
+					"eventID", event.getEventID()).append("TimeCreated",
+					event.getTimeCreated());
+			MongoCollection<Document> collection = MongoDBJDBC.mongoClient
+					.getDatabase(dbName).getCollection(colleName);
+			collection.insertOne(document);
+		}
+	}
+
 	// 查找某个集合的全部文档
-	public static void findAll(String colleName) {
+	public static void findAll(String dbName, String colleName) {
 		try {
-			MongoCollection<Document> collection = MongoDBJDBC
-					.connectionMongoDB().getCollection(colleName);
-			//检索所有文档  
-	         /** 
-	         * 1. 获取迭代器FindIterable<Document> 
-	         * 2. 获取游标MongoCursor<Document> 
-	         * 3. 通过游标遍历检索出的文档集合 
-	         * */  
-	         //FindIterable<Document> findIterable = collection.find();  
-	         //MongoCursor<Document> mongoCursor = findIterable.iterator();  
-	         MongoCursor<Document> cursor = collection.find().iterator();
-	         try {
-	             while (cursor.hasNext()) {
-	                 System.out.println(cursor.next().toJson());
-	             }
-	         } finally {
-	             cursor.close();
-	         }  
+			MongoCollection<Document> collection = MongoDBJDBC.mongoClient
+					.getDatabase(dbName).getCollection(colleName);
+			// 检索所有文档
+			/**
+			 * 1. 获取迭代器FindIterable<Document> 2. 获取游标MongoCursor<Document> 3.
+			 * 通过游标遍历检索出的文档集合
+			 * */
+			// FindIterable<Document> findIterable = collection.find();
+			// MongoCursor<Document> mongoCursor = findIterable.iterator();
+			MongoCursor<Document> cursor = collection.find().iterator();
+			try {
+				while (cursor.hasNext()) {
+					System.out.println(cursor.next().toJson());
+				}
+			} finally {
+				cursor.close();
+			}
 		} catch (Exception e) {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
 		}
 	}
+
+	/*
+	 * 查找某个数据库某个集合中的100个Event
+	 */
+	public static ArrayList<Event> findEvents(String dbName, String colleName,
+			int startIndex) {
+		try {
+			ArrayList<Event> events = new ArrayList<Event>();
+			MongoCollection<Document> collection = MongoDBJDBC.mongoClient
+					.getDatabase(dbName).getCollection(colleName);
+
+			Block<Document> printBlock = new Block<Document>() {
+				@Override
+				public void apply(final Document document) {
+					System.out.println(document.toJson());
+				}
+			};
+			// startIndex<=i<startIndex+100
+			collection.find(and(gt("i", 0), lte("i", 10))).forEach(printBlock);
+			return events;
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			return null;
+		}
+	}
+
 	public static void main(String[] args) {
-		//MongoDBJDBC.createCollection("Security");
-		MongoDBJDBC.findAll("myLogs");
+		// MongoDBJDBC.createCollection("Security");
+		MongoDBJDBC.connectionMongoDB();
+		//MongoDBJDBC.findAll("Chubby", "myLogs");
+		MongoDBJDBC.findEvents("Chubby", "Security", 0);
 	}
 }

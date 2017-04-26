@@ -1,10 +1,16 @@
 package Module;
 
 public class Event {
+	private int i;
 	private String eventID;
 	private String timeCreated;
-	private String computer;
 	public Event(){}
+	public int getI() {
+		return i;
+	}
+	public void setI(int i) {
+		this.i = i;
+	}
 	public String getEventID() {
 		return eventID;
 	}
@@ -16,11 +22,5 @@ public class Event {
 	}
 	public void setTimeCreated(String timeCreated) {
 		this.timeCreated = timeCreated;
-	}
-	public String getComputer() {
-		return computer;
-	}
-	public void setComputer(String computer) {
-		this.computer = computer;
 	}
 }
