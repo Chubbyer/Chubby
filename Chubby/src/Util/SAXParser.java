@@ -94,6 +94,32 @@ public class SAXParser {
 
 	}
 
+	/*
+	 * 把某个主机的日志的Security文件写到数据库中
+	 */
+	public static void writeToMongo(String host) {
+		MongoDBJDBC.connectionMongoDB();
+		String filePath="D:\\LogFiles\\"+host+"\\Security.xml";
+		XMLReader parser;
+		try {
+			parser = XMLReaderFactory.createXMLReader();
+			BookHandler bookHandler = (new SAXParser()).new BookHandler();
+			parser.setContentHandler(bookHandler);
+			parser.parse(filePath);
+		} catch (SAXException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("解析出错了！");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("文件打开出错了！");
+		}finally{
+			MongoDBJDBC.closeMongoDB();
+		}
+
+	}
+
 	public static void main(String[] args) throws SAXException, IOException {
 		MongoDBJDBC.connectionMongoDB();
 		XMLReader parser = XMLReaderFactory.createXMLReader();
@@ -101,7 +127,7 @@ public class SAXParser {
 		parser.setContentHandler(bookHandler);
 		parser.parse("C:\\Users\\Administrator\\Desktop\\Test\\event.xml");
 		// System.out.println(bookHandler.lines);
-
+		// 事务机制
 		MongoDBJDBC.findAll("Chubby", "Security");
 	}
 }

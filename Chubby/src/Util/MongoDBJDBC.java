@@ -5,16 +5,15 @@ import java.util.ArrayList;
 import org.bson.Document;
 
 import Module.Event;
+import Module.User;
 
-import com.mongodb.BasicDBObject;
 import com.mongodb.Block;
-import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoDatabase;
+
 import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Updates.*;
 
 /*
  * @Leung
@@ -51,6 +50,7 @@ public class MongoDBJDBC {
 
 	// 在指定的数据库下创建MonngoDB集合
 	public static void createCollection(String dbName, String colleName) {
+		MongoDBJDBC.connectionMongoDB();
 		if (MongoDBJDBC.mongoClient != null) {
 			// 连接到数据库并创建集合
 			MongoDBJDBC.mongoClient.getDatabase(dbName).createCollection(
@@ -80,6 +80,7 @@ public class MongoDBJDBC {
 	 * 在指定的数据库、集合中插入Event的JSON描述
 	 */
 	public static void insertEvent(String dbName, String colleName, Event event) {
+		MongoDBJDBC.connectionMongoDB();
 		if (MongoDBJDBC.mongoClient != null) {
 			Document document = new Document("i", event.getI()).append(
 					"eventID", event.getEventID()).append("TimeCreated",
@@ -92,6 +93,7 @@ public class MongoDBJDBC {
 
 	// 查找某个集合的全部文档
 	public static void findAll(String dbName, String colleName) {
+		MongoDBJDBC.connectionMongoDB();
 		try {
 			MongoCollection<Document> collection = MongoDBJDBC.mongoClient
 					.getDatabase(dbName).getCollection(colleName);
@@ -120,19 +122,23 @@ public class MongoDBJDBC {
 	 */
 	public static ArrayList<Event> findEvents(String dbName, String colleName,
 			int startIndex) {
+		MongoDBJDBC.connectionMongoDB();
 		try {
-			ArrayList<Event> events = new ArrayList<Event>();
+			final ArrayList<Event> events = new ArrayList<Event>();
 			MongoCollection<Document> collection = MongoDBJDBC.mongoClient
 					.getDatabase(dbName).getCollection(colleName);
 
 			Block<Document> printBlock = new Block<Document>() {
 				@Override
 				public void apply(final Document document) {
+					events.add(JSONParser.getEventFromJSONStr(document.toJson()));
 					System.out.println(document.toJson());
 				}
 			};
 			// startIndex<=i<startIndex+100
-			collection.find(and(gt("i", 0), lte("i", 10))).forEach(printBlock);
+			collection
+					.find(and(gt("i", startIndex), lte("i", startIndex + 10)))
+					.forEach(printBlock);
 			return events;
 		} catch (Exception e) {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
@@ -140,10 +146,38 @@ public class MongoDBJDBC {
 		}
 	}
 
+	/*
+	 * 查找某个同学关于他的文件信息,参数str表示为姓名或学号或主机名
+	 */
+	public static User findUserInfo(String str) {
+		MongoDBJDBC.connectionMongoDB();
+		MongoCollection<Document> collection = MongoDBJDBC.mongoClient
+				.getDatabase("User").getCollection("Info");
+		Document document = new Document();
+		document = collection.find(
+				or(eq("Name", str), eq("Sno", str), eq("Host", str))).first();
+		System.out.println(document.toJson());
+		return JSONParser.getUserFromJSONStr(document.toJson());
+	}
+	/*
+	 * 更新User的信息
+	 */
+	public static void updateUserInfo(String host,String key,Object value) {
+		MongoCollection<Document> collection = MongoDBJDBC.mongoClient
+				.getDatabase("User").getCollection("Info");
+		collection.updateOne(eq("Host", host), set(key, value));
+	}
+
 	public static void main(String[] args) {
 		// MongoDBJDBC.createCollection("Security");
-		MongoDBJDBC.connectionMongoDB();
-		//MongoDBJDBC.findAll("Chubby", "myLogs");
-		MongoDBJDBC.findEvents("Chubby", "Security", 0);
+		//MongoDBJDBC.connectionMongoDB();
+		// MongoDBJDBC.findAll("Chubby", "myLogs");
+		// MongoDBJDBC.findEvents("Chubby", "Security", 0);
+		System.out.println(MongoDBJDBC.findUserInfo("Leung").getFlag());
+		MongoDBJDBC.updateUserInfo("Leung", "Flag", false);
+		boolean flag=MongoDBJDBC.findUserInfo("Leung").getFlag();
+		if(flag==false)
+		 System.out.println("qq");
+		MongoDBJDBC.closeMongoDB();
 	}
 }

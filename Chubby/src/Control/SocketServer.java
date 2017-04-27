@@ -9,7 +9,10 @@ import java.util.Date;
 import java.util.Map;
 
 import Module.Host;
+import Module.User;
+import Protocol.EC;
 import Protocol.SC;
+import Util.MongoDBJDBC;
 import Util.Net;
 
 /*
@@ -22,12 +25,12 @@ public class SocketServer {
 	private String status=SC.SERVER_OK;
 	// private Map<String, Host> hostsMap;
 	// 监听端口号
-	private int port = 10000;
+	private int port = 10001;
 
 	public SocketServer(int port) {
 		this.port = port;
 	}
-	//
+	//监听连接请求，接受到任务请求后转发任务
 	@SuppressWarnings("unused")
 	public void monitor() {
 		String receiveData=null;
@@ -37,13 +40,10 @@ public class SocketServer {
 			this.serverSocket = new ServerSocket(port);
 			while (true) {
 				// 获得连接
-				this.socket = serverSocket.accept();
-				// 接收客户端发送内容
-				receiveData=Net.acceptData(socket);
-				System.out.println("端口："+this.port+" 收到："+receiveData);
-				if(receiveData.equals(SC.CHECK_CONNECTION))
-					Net.sentData(socket, this.status);
-				
+				Socket accpetSocket=new Socket();
+				accpetSocket = serverSocket.accept();
+				//转移控制权，这里应该启动一个线程
+				this.action(accpetSocket);
 			}
 		} catch (IOException e1) {
 			// TODO Auto-generated catch block
@@ -54,9 +54,36 @@ public class SocketServer {
 	/*
 	 * 发送或接受数据
 	 */
-	public String swapInfo(String data) {
-		return data;
-
+	public void action(Socket accpetSocket) {
+		String receiveData=null;
+		String sendData;
+	
+		// 接收客户端发送内容
+		receiveData=Net.acceptData(accpetSocket);
+		System.out.println("端口："+this.port+" 收到："+receiveData);
+		//解析出客户端请求的类型
+		String oType=receiveData.substring(0, 3);
+		if(oType.equals(SC.CHECK_CONNECTION)){
+			//客户端请求连接，发送本服务器的状态
+			Net.sentData(accpetSocket, this.status);
+			return;
+		}
+		if(oType.equals(EC.E_301)&&this.status.equals(SC.SERVER_OK)){
+			System.out.println(receiveData.substring(3));
+			//将本机的状态置为忙
+			this.status=SC.SERVER_BUSY;
+			//完成EC.E_301所描述的任务
+			User user=MongoDBJDBC.findUserInfo(receiveData.substring(3));
+			if(user.getR_Flag()){
+				//直接从前缀为R_的集合中提取数据加工发给客户端
+			}
+			else if(user.getFlag()){
+				//从原始的数据库集合总分析出结果发送给客户端
+			}else{
+				//从原始的文件开始分析
+			}
+			Net.sentData(accpetSocket, this.status);
+		}
 	}
 
 	/*
@@ -79,7 +106,7 @@ public class SocketServer {
 	}
 
 	public static void main(String[] args) {
-		SocketServer chubbyer=new SocketServer(10000);
+		SocketServer chubbyer=new SocketServer(10001);
 		chubbyer.monitor();
 //		SocketServer chubbyer1=new SocketServer(10001);
 //		chubbyer1.monitor();

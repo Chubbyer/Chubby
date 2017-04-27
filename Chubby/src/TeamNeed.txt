@@ -2,3 +2,16 @@
 
 @Leung：需要在Net类中提供静态方法：接受Socket发送的数据
 函数签名：public static String acceptData(Socket socket)
+
+【实现思路】v1版本实现从Security日志文件中分析即可
+1.从Windows系统导出三个类型的日志文件：应用程序（Application）、安全（Security）、系统（System）
+形成xml文件，导出是需要记录系统类型（Win7或win8或win10）、主机名、该同学的姓名学号、每个日志文件的数量，
+打包成一个文件，文件名为主机名,统一存放在D盘下的LogsFile文件中。
+2.为每个同学的日志文件建立MongoDB数据库，数据库名为主机名，例如我的是Leung（之后都以此为例），在其下建立三个集合分别对应
+三个类型的日志文件，分别录入关键的日志事件信息。
+3.从以上建立的数据库中分析出可以用于展示的信息另存在同一数据库下的R_Application、R_Security、R_System
+集合之中。
+4.单独创建User数据库再创建Info集合描述所有同学关于他们的日志的一些相关信息：Name,Sno,Sys（系统）,Host(主机名)，
+LogLiens（日志的数量）,Flag(是否已提取所有的日志事件至数据库)，R_Flag(是否已建立可展示的信息库),Open_Id（开机事件所对应的ID）,
+Close_Id（关机事件所对应的ID）
+({Name:"梁健",Sno:"631406010412",Sys:"Windows10",Host:"Leung",LogLines:10000,Flag:0,R_Flag:0,Open_Id:"4798",Close_Id:"4647"})

@@ -27,13 +27,49 @@ public class SocketClient {
 
 	// 检查与服务器的连接
 	public String checkConnection() {
-		//注意这里nextHost结果可能没变
-		this.serverIP = HostList.nextHost().getServerIP();
-		System.out.println(this.serverIP);
-		this.port = HostList.nextHost().getPort();
-		System.out.println(this.port);
+		// 注意这里nextHost结果可能没变
+		String returnStr = null;
+		while (true) {
+			try {
+				this.serverIP = HostList.nextHost().getServerIP();
+				System.out.println(serverIP);
+				this.port = HostList.nextHost().getPort();
+				System.out.println(port);
+				this.socket = new Socket(serverIP, port);
+				String data = SC.CHECK_CONNECTION;
+				Net.sentData(socket, data);// 发送表示请求连接的字段
+				// Net.sentData(socket, "301|Leung");
+				returnStr = Net.acceptData(socket);// 收到服务端的回应
+				break;
+			} catch (UnknownHostException e) {
+				// TODO Auto-generated catch block
+				// e.printStackTrace();
+				continue;
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				// e.printStackTrace();
+				continue;
+			}
+		}
+		return returnStr;
+	}
+
+	// 根据协议EC-300;请求301操作,id表示对应人的标识号
+	public String getOneOverview(String id) {
+		// 当前服务器（初始适配的服务器）就绪
 		try {
-			socket = new Socket(serverIP, port);
+			for (int i = 0; i < HostList.hostsCount; i++) {
+				// 随机向已登记的服务器请求连接
+				if (this.checkConnection().equals(SC.SERVER_OK)) {
+					// 请求的服务器可以接受任务，发送具体的任务类型
+					// 任务类型与目标用户的标识用|隔开
+					String data = EC.E_301 + id;
+					this.socket=new Socket(this.serverIP, this.port);
+					Net.sentData(this.socket, data);
+					//System.out.println(Net.acceptData(this.socket));
+					return Net.acceptData(this.socket);
+				}
+			}
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -41,27 +77,12 @@ public class SocketClient {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		String data = SC.CHECK_CONNECTION;
-		Net.sentData(socket, data);
-		return Net.acceptData(socket);
-	}
-
-	// 根据协议EC-300;请求301操作,id表示对应人的标识号
-	public String getOneOverview(String id) {
-		// 当前服务器（初始适配的服务器）就绪
-		for (int i = 0; i < HostList.hostsCount; i++) {
-			if (this.checkConnection().equals(SC.SERVER_OK)) {
-				String data = EC.E_301;
-				Net.sentData(socket, data);
-				System.out.println(Net.acceptData(socket));
-				return Net.acceptData(socket);
-			}
-			
-		}return null;
+		return null;
 	}
 
 	public static void main(String[] args) {
 		SocketClient sClient = new SocketClient();
-		System.out.println(sClient.checkConnection());
+		// System.out.println(sClient.checkConnection());
+		sClient.getOneOverview("Leung");
 	}
 }
