@@ -59,6 +59,7 @@ public class MongoDBJDBC {
 		} else {
 			System.out.println("MongoDB服务未打开");
 		}
+		MongoDBJDBC.closeMongoDB();
 	}
 
 	// 写操作日志到MongoDB数据库的myLogs集合中
@@ -78,9 +79,11 @@ public class MongoDBJDBC {
 
 	/*
 	 * 在指定的数据库、集合中插入Event的JSON描述
+	 * 这是一个会被连续多次调用的方法，在调用处统一连接统一关闭
 	 */
+	@SuppressWarnings("unconnectionMongoDB")
 	public static void insertEvent(String dbName, String colleName, Event event) {
-		MongoDBJDBC.connectionMongoDB();
+		//MongoDBJDBC.connectionMongoDB();
 		if (MongoDBJDBC.mongoClient != null) {
 			Document document = new Document("i", event.getI()).append(
 					"eventID", event.getEventID()).append("TimeCreated",
@@ -89,6 +92,7 @@ public class MongoDBJDBC {
 					.getDatabase(dbName).getCollection(colleName);
 			collection.insertOne(document);
 		}
+		//MongoDBJDBC.closeMongoDB();
 	}
 
 	// 查找某个集合的全部文档
@@ -111,6 +115,7 @@ public class MongoDBJDBC {
 				}
 			} finally {
 				cursor.close();
+				MongoDBJDBC.closeMongoDB();
 			}
 		} catch (Exception e) {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
@@ -118,11 +123,13 @@ public class MongoDBJDBC {
 	}
 
 	/*
-	 * 查找某个数据库某个集合中的100个Event
+	 * 查找某个数据库某个集合中的1000个Event
+	 * 这是一个会被连续多次调用的方法，在调用处统一连接统一关闭
 	 */
+	@SuppressWarnings("unconnectionMongoDB")
 	public static ArrayList<Event> findEvents(String dbName, String colleName,
 			int startIndex) {
-		MongoDBJDBC.connectionMongoDB();
+		//MongoDBJDBC.connectionMongoDB();//这个方法比较特殊，在调用出统一连接，统一关闭
 		try {
 			final ArrayList<Event> events = new ArrayList<Event>();
 			MongoCollection<Document> collection = MongoDBJDBC.mongoClient
@@ -135,9 +142,9 @@ public class MongoDBJDBC {
 					System.out.println(document.toJson());
 				}
 			};
-			// startIndex<=i<startIndex+100
+			// startIndex<=i<startIndex+1000
 			collection
-					.find(and(gt("i", startIndex), lte("i", startIndex + 10)))
+					.find(and(gt("i", startIndex), lte("i", startIndex + 1000)))
 					.forEach(printBlock);
 			return events;
 		} catch (Exception e) {
@@ -157,6 +164,7 @@ public class MongoDBJDBC {
 		document = collection.find(
 				or(eq("Name", str), eq("Sno", str), eq("Host", str))).first();
 		System.out.println(document.toJson());
+		MongoDBJDBC.closeMongoDB();
 		return JSONParser.getUserFromJSONStr(document.toJson());
 	}
 	/*
@@ -166,6 +174,7 @@ public class MongoDBJDBC {
 		MongoCollection<Document> collection = MongoDBJDBC.mongoClient
 				.getDatabase("User").getCollection("Info");
 		collection.updateOne(eq("Host", host), set(key, value));
+		MongoDBJDBC.closeMongoDB();
 	}
 
 	public static void main(String[] args) {
