@@ -33,9 +33,8 @@ public class SocketClient {
 		while (true) {
 			try {
 				this.serverIP = HostList.nextHost().getServerIP();
-				System.out.println(serverIP);
 				this.port = HostList.nextHost().getPort();
-				System.out.println(port);
+				System.out.println("正在请求："+serverIP+" 端口："+port);
 				this.socket = new Socket(serverIP, port);
 				String data = SC.CHECK_CONNECTION;
 				Net.sentData(socket, data);// 发送表示请求连接的字段
@@ -44,10 +43,12 @@ public class SocketClient {
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
 				// e.printStackTrace();
+				System.out.println("该服务器未启用");
 				continue;
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				// e.printStackTrace();
+				System.out.println("该服务器未启用");
 				continue;
 			}
 		}
@@ -69,9 +70,10 @@ public class SocketClient {
 						String data = EC.E_301 + id;
 						this.socket = new Socket(this.serverIP, this.port);
 						Net.sentData(this.socket, data);
-						// System.out.println(Net.acceptData(this.socket));
+						System.out.println("已发送请求，正在等待接受数据···");
 						return Net.acceptData(this.socket);
 					}else {
+						System.out.println("该服务器正忙");
 						continue;
 					}
 				} else {
@@ -82,9 +84,13 @@ public class SocketClient {
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.out.println("连接异常");
+			return null;
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			System.out.println("连接异常");
+			return null;
 		}
 		return null;
 	}
@@ -95,9 +101,10 @@ public class SocketClient {
 		@SuppressWarnings("unchecked")
 		ArrayList<String> chubbyers = (ArrayList<String>) sClient.getOneOverview("Leung");
 		System.out.println(chubbyers.size());
-		for (String chubbyer : chubbyers) {
-			System.out.println(chubbyer);
+		for (int i = 0; i < 50; i++) {
+			System.out.println(chubbyers.get(i));
 		}
+	
 		//System.out.println(sClient.getOneOverview("Leung"));
 
 	}

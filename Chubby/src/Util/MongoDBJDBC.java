@@ -1,5 +1,6 @@
 package Util;
 
+import java.awt.List;
 import java.util.ArrayList;
 
 import org.bson.Document;
@@ -25,51 +26,55 @@ import static com.mongodb.client.model.Updates.*;
 public class MongoDBJDBC {
 	public static String ip = "localhost";
 	public static int port = 27017;
-	public static String hostName = "Leung";
-	public static MongoClient mongoClient = null;// mongodb 服务
-	public static String dbName;
+	// public String dbName = "Leung";
+	public MongoClient mongoClient = null;// mongodb 服务
+	public String dbName;
+
+	public MongoDBJDBC(String host) {
+		// TODO Auto-generated constructor stub
+		this.dbName = host;
+	}
 
 	// 连接到MongoDB数据库
-	public static void connectionMongoDB() {
+	public void connectionMongoDB() {
 		try {
 			// 连接到 mongodb 服务
 			@SuppressWarnings("resource")
 			MongoClient mongoClient = new MongoClient(MongoDBJDBC.ip,
 					MongoDBJDBC.port);
-			MongoDBJDBC.mongoClient = mongoClient;
+			this.mongoClient = mongoClient;
 		} catch (Exception e) {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
 		}
 	}
 
 	// 关闭数据库连接
-	public static void closeMongoDB() {
-		MongoDBJDBC.mongoClient.close();
-		MongoDBJDBC.mongoClient = null;
+	public void closeMongoDB() {
+		this.mongoClient.close();
+		this.mongoClient = null;
 	}
 
 	// 在指定的数据库下创建MonngoDB集合
-	public static void createCollection(String dbName, String colleName) {
-		MongoDBJDBC.connectionMongoDB();
-		if (MongoDBJDBC.mongoClient != null) {
+	public void createCollection(String colleName) {
+		this.connectionMongoDB();
+		if (this.mongoClient != null) {
 			// 连接到数据库并创建集合
-			MongoDBJDBC.mongoClient.getDatabase(dbName).createCollection(
-					colleName);
-			MongoDBJDBC.writeLog(dbName, "创建了集合" + colleName);
+			this.mongoClient.getDatabase(dbName).createCollection(colleName);
+			this.writeLog("创建了集合" + colleName);
 		} else {
 			System.out.println("MongoDB服务未打开");
 		}
-		MongoDBJDBC.closeMongoDB();
+		this.closeMongoDB();
 	}
 
 	// 写操作日志到MongoDB数据库的myLogs集合中
-	private static void writeLog(String dbName, String info) {
+	private void writeLog(String info) {
 		try {
 			String nowTime = TimeParser.getNowTimeStr();
 			String logString = nowTime + " " + info;
-			Document document = new Document("author", MongoDBJDBC.hostName)
-					.append("info", logString);
-			MongoCollection<Document> collection = MongoDBJDBC.mongoClient
+			Document document = new Document("author", dbName).append("info",
+					logString);
+			MongoCollection<Document> collection = this.mongoClient
 					.getDatabase(dbName).getCollection("myLogs");
 			collection.insertOne(document);
 		} catch (Exception e) {
@@ -78,28 +83,27 @@ public class MongoDBJDBC {
 	}
 
 	/*
-	 * 在指定的数据库、集合中插入Event的JSON描述
-	 * 这是一个会被连续多次调用的方法，在调用处统一连接统一关闭
+	 * 在指定的数据库、集合中插入Event的JSON描述 这是一个会被连续多次调用的方法，在调用处统一连接统一关闭
 	 */
 	@SuppressWarnings("unconnectionMongoDB")
-	public static void insertEvent(String dbName, String colleName, Event event) {
-		//MongoDBJDBC.connectionMongoDB();
-		if (MongoDBJDBC.mongoClient != null) {
+	public void insertEvent(String colleName, Event event) {
+		// MongoDBJDBC.connectionMongoDB();
+		if (this.mongoClient != null) {
 			Document document = new Document("i", event.getI()).append(
 					"eventID", event.getEventID()).append("TimeCreated",
 					event.getTimeCreated());
-			MongoCollection<Document> collection = MongoDBJDBC.mongoClient
+			MongoCollection<Document> collection = this.mongoClient
 					.getDatabase(dbName).getCollection(colleName);
 			collection.insertOne(document);
 		}
-		//MongoDBJDBC.closeMongoDB();
+		// MongoDBJDBC.closeMongoDB();
 	}
 
 	// 查找某个集合的全部文档
-	public static void findAll(String dbName, String colleName) {
-		MongoDBJDBC.connectionMongoDB();
+	public void findAll(String colleName) {
+		this.connectionMongoDB();
 		try {
-			MongoCollection<Document> collection = MongoDBJDBC.mongoClient
+			MongoCollection<Document> collection = this.mongoClient
 					.getDatabase(dbName).getCollection(colleName);
 			// 检索所有文档
 			/**
@@ -115,7 +119,7 @@ public class MongoDBJDBC {
 				}
 			} finally {
 				cursor.close();
-				MongoDBJDBC.closeMongoDB();
+				this.closeMongoDB();
 			}
 		} catch (Exception e) {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
@@ -123,32 +127,30 @@ public class MongoDBJDBC {
 	}
 
 	/*
-	 * 查找某个数据库某个集合中的1000个Event
-	 * 这是一个会被连续多次调用的方法，在调用处统一连接统一关闭
+	 * 查找某个数据库某个集合中的1000个Event 这是一个会被连续多次调用的方法，在调用处统一连接统一关闭
 	 */
 	@SuppressWarnings("unconnectionMongoDB")
-	public static ArrayList<Event> findEvents(String dbName, String colleName,
-			int startIndex) {
-		//MongoDBJDBC.connectionMongoDB();//这个方法比较特殊，在调用出统一连接，统一关闭
+	public ArrayList<Event> findEvents(String colleName, int startIndex,
+			int endIndex) {
+		// MongoDBJDBC.connectionMongoDB();//这个方法比较特殊，在调用出统一连接，统一关闭
 		try {
 			final ArrayList<Event> events = new ArrayList<Event>();
-			MongoCollection<Document> collection = MongoDBJDBC.mongoClient
-					.getDatabase(dbName).getCollection(colleName);
+			MongoCollection<Document> collection = this.mongoClient
+					.getDatabase(this.dbName).getCollection(colleName);
 
 			Block<Document> printBlock = new Block<Document>() {
 				@Override
 				public void apply(final Document document) {
 					events.add(JSONParser.getEventFromJSONStr(document.toJson()));
-					System.out.println(document.toJson());
+					//System.out.println(document.toJson());
 				}
 			};
-			// startIndex<=i<startIndex+1000
-			collection
-					.find(and(gt("i", startIndex), lte("i", startIndex + 1000)))
+			collection.find(and(gt("i", startIndex), lte("i", endIndex)))
 					.forEach(printBlock);
 			return events;
 		} catch (Exception e) {
-			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			//System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			e.printStackTrace();
 			return null;
 		}
 	}
@@ -156,37 +158,102 @@ public class MongoDBJDBC {
 	/*
 	 * 查找某个同学关于他的文件信息,参数str表示为姓名或学号或主机名
 	 */
-	public static User findUserInfo(String str) {
-		MongoDBJDBC.connectionMongoDB();
-		MongoCollection<Document> collection = MongoDBJDBC.mongoClient
-				.getDatabase("User").getCollection("Info");
+	public User findUserInfo(String str) {
+		this.connectionMongoDB();
+		MongoCollection<Document> collection = this.mongoClient.getDatabase(
+				"User").getCollection("Info");
 		Document document = new Document();
 		document = collection.find(
 				or(eq("Name", str), eq("Sno", str), eq("Host", str))).first();
 		System.out.println(document.toJson());
-		MongoDBJDBC.closeMongoDB();
+		this.closeMongoDB();
 		return JSONParser.getUserFromJSONStr(document.toJson());
+
 	}
+
 	/*
 	 * 更新User的信息
 	 */
-	public static void updateUserInfo(String host,String key,Object value) {
-		MongoCollection<Document> collection = MongoDBJDBC.mongoClient
-				.getDatabase("User").getCollection("Info");
-		collection.updateOne(eq("Host", host), set(key, value));
-		MongoDBJDBC.closeMongoDB();
+	public void updateUserInfo(String hostName, String key, Object value) {
+		this.connectionMongoDB();
+		MongoCollection<Document> collection = this.mongoClient.getDatabase(
+				"User").getCollection("Info");
+		collection.updateOne(eq("Host", hostName), set(key, value));
+		this.closeMongoDB();
+	}
+
+	/*
+	 * 将我们分析的结果写入以R_打头的集合中
+	 */
+	public void insertChubbyers(String host, ArrayList<String> cbs) {
+		ArrayList<Document> documents = new ArrayList<Document>();
+		this.connectionMongoDB();
+		if (this.mongoClient != null) {
+			for (int i = 0; i < cbs.size(); i++) {
+				documents.add(new Document("point", cbs.get(i)));
+			}
+
+			MongoCollection<Document> collection = this.mongoClient
+					.getDatabase(host).getCollection("R_Security");
+			collection.insertMany(documents);
+			//更新User信息
+			collection = this.mongoClient.getDatabase(
+					"User").getCollection("Info");
+			collection.updateOne(eq("Host", host), set("R_Flag", true));
+		}
+		this.closeMongoDB();
+	}
+	/*
+	 * 将数据库中分析好的结果从R_集合读出来
+	 */
+	@SuppressWarnings("finally")
+	public ArrayList<String> findAllChubbyers(String host) {
+		this.connectionMongoDB();
+		ArrayList<String> chubbyers=new ArrayList<String>();
+		try {
+			MongoCollection<Document> collection = this.mongoClient
+					.getDatabase(host).getCollection("R_Security");
+			// 检索所有文档
+			MongoCursor<Document> cursor = collection.find().iterator();
+			try {
+				while (cursor.hasNext()) {
+					String chubbyer=JSONParser.getChubbyerFromJSON(cursor.next().toJson());
+					System.out.println(chubbyer);
+					if(chubbyer.equals(null))
+						chubbyers.add(chubbyer);
+					
+				}
+			} finally {
+				cursor.close();
+				this.closeMongoDB();
+			}
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+		}
+		return chubbyers;
 	}
 
 	public static void main(String[] args) {
 		// MongoDBJDBC.createCollection("Security");
-		//MongoDBJDBC.connectionMongoDB();
+		ArrayList<String> cbs=new ArrayList<String>();
+		cbs.add("{'ot':'123','ct':'234'}");
+		cbs.add("{'ot':'123','ct':'234'}");
+		//MongoDBJDBC mongoer = new MongoDBJDBC("Leung");
+		//mongoer.connectionMongoDB();
+		//mongoer.insertChubbyers("Chubby", cbs);
+		//mongoer.findAllChubbyers("Chubby");
+		// mongoer.connectionMongoDB();
 		// MongoDBJDBC.findAll("Chubby", "myLogs");
-		// MongoDBJDBC.findEvents("Chubby", "Security", 0);
-		System.out.println(MongoDBJDBC.findUserInfo("Leung").getFlag());
-		MongoDBJDBC.updateUserInfo("Leung", "Flag", false);
-		boolean flag=MongoDBJDBC.findUserInfo("Leung").getFlag();
-		if(flag==false)
-		 System.out.println("qq");
-		MongoDBJDBC.closeMongoDB();
+		//mongoer.findEvents("Security", 0,30);
+		//System.out.println(mongoer.findUserInfo("Leung").getFlag());
+		//mongoer.updateUserInfo("Leung", "Flag", false);
+		// boolean flag=MongoDBJDBC.findUserInfo("Leung").getFlag();
+		// if(flag==false)
+		// System.out.println("qq");
+		// mongoer.closeMongoDB();
+		
+		MongoDBJDBC mongoer = new MongoDBJDBC("User");				
+		mongoer.updateUserInfo("Leung", "LogLines", 15000);
+		//System.out.println(mongoer.findUserInfo("Leung").getName());
 	}
 }

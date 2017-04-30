@@ -1,5 +1,7 @@
 package Util;
 
+import java.util.ArrayList;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -7,14 +9,14 @@ import Module.Event;
 import Module.User;
 
 public class JSONParser {
-	
+
 	/*
 	 * 将MongoDB中记录Event的JSON字符串封装成Event
 	 */
 	public static Event getEventFromJSONStr(String jsonStr) {
 		try {
-			JSONObject jsonObj=new JSONObject(jsonStr);
-			Event event=new Event();
+			JSONObject jsonObj = new JSONObject(jsonStr);
+			Event event = new Event();
 			event.setEventID(jsonObj.getString("eventID"));
 			event.setTimeCreated(jsonObj.getString("TimeCreated"));
 			return event;
@@ -24,13 +26,14 @@ public class JSONParser {
 			return null;
 		}
 	}
+
 	/*
 	 * 将MongoDB中记录User的JSON字符串封装成User
 	 */
 	public static User getUserFromJSONStr(String jsonStr) {
 		try {
-			JSONObject jsonObj=new JSONObject(jsonStr);
-			User user=new User();
+			JSONObject jsonObj = new JSONObject(jsonStr);
+			User user = new User();
 			user.setName(jsonObj.getString("Name"));
 			user.setSno(jsonObj.getString("Sno"));
 			user.setSys(jsonObj.getString("Sys"));
@@ -47,12 +50,26 @@ public class JSONParser {
 			return null;
 		}
 	}
+
+	public static String getChubbyerFromJSON(String str) {
+		try {
+			JSONObject jsonObj = new JSONObject(str);
+			return jsonObj.getString("point");
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+
 	public static void main(String[] args) {
-//		String jsonStr="{ '_id' : { '$oid' : '59005de2dca30f934892ed0e' }, 'i' : 7, 'eventID' : '4798', 'TimeCreated' : '2017-04-18 13:49:01' }";
-//		Event event=JSONParser.getEventFromJSONStr(jsonStr);
-//		System.out.println(event.getEventID());
-		String str="301|Leung";
-		String[] strs=str.split("|");
+		// String
+		// jsonStr="{ '_id' : { '$oid' : '59005de2dca30f934892ed0e' }, 'i' : 7, 'eventID' : '4798', 'TimeCreated' : '2017-04-18 13:49:01' }";
+		// Event event=JSONParser.getEventFromJSONStr(jsonStr);
+		// System.out.println(event.getEventID());
+		String str = "301|Leung";
+		String[] strs = str.split("|");
 		for (int i = 0; i < strs.length; i++) {
 			System.out.println(strs[i]);
 		}

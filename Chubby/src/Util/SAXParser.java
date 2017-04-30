@@ -13,14 +13,22 @@ import org.xml.sax.helpers.XMLReaderFactory;
 import Module.Event;
 
 public class SAXParser {
-
+	public MongoDBJDBC mongoer;
+	public String host;
+	public String fileName;
+	public SAXParser(MongoDBJDBC mongoer,String host,String fileName) {
+		// TODO Auto-generated constructor stub
+		this.mongoer=mongoer;
+		this.host=host;
+		this.fileName=fileName;
+		mongoer.connectionMongoDB();
+	}
 	class BookHandler extends DefaultHandler {
 		private Event event = new Event();
 		private boolean title = false;
 		public long lines = 0L;
 		// 用来存放每次遍历后的元素名称(节点名称)
 		private String tagName;
-
 		public Event getEvent() {
 			return event;
 		}
@@ -46,7 +54,11 @@ public class SAXParser {
 		// Called at end of an XML document
 		@Override
 		public void endDocument() throws SAXException {
-			System.out.println("End");
+			System.out.println("Parsing End");
+			mongoer.closeMongoDB();
+			//更新User的信息
+			MongoDBJDBC mongoer=new MongoDBJDBC("User");
+			mongoer.updateUserInfo(host, "Flag", true);
 		}
 
 		/**
@@ -63,7 +75,7 @@ public class SAXParser {
 				// System.out.println(this.event.getI());
 				// System.out.println(this.event.getEventID());
 				// System.out.println(this.event.getTimeCreated());
-				MongoDBJDBC.insertEvent("Chubby", "Security", this.event);
+				mongoer.insertEvent(fileName, this.event);
 			}
 			this.tagName = qName;
 		}
@@ -97,13 +109,15 @@ public class SAXParser {
 	/*
 	 * 把某个主机的日志的Security文件写到数据库中
 	 */
-	public static void writeToMongo(String host) {
-		MongoDBJDBC.connectionMongoDB();
-		String filePath="D:\\LogFiles\\"+host+"\\Security.xml";
+	public static void writeToMongo(SAXParser saxParser) {
+		//MongoDBJDBC mongoer=new MongoDBJDBC(host);
+		String host=saxParser.host;
+		String file=saxParser.fileName;
+		String filePath="D:\\LogFiles\\"+host+"\\"+file+".xml";
 		XMLReader parser;
 		try {
 			parser = XMLReaderFactory.createXMLReader();
-			BookHandler bookHandler = (new SAXParser()).new BookHandler();
+			BookHandler bookHandler = (saxParser).new BookHandler();
 			parser.setContentHandler(bookHandler);
 			parser.parse(filePath);
 		} catch (SAXException e) {
@@ -115,19 +129,22 @@ public class SAXParser {
 			e.printStackTrace();
 			System.out.println("文件打开出错了！");
 		}finally{
-			MongoDBJDBC.closeMongoDB();
+			//.closeMongoDB();
 		}
 
 	}
 
 	public static void main(String[] args) throws SAXException, IOException {
-		MongoDBJDBC.connectionMongoDB();
-		XMLReader parser = XMLReaderFactory.createXMLReader();
-		BookHandler bookHandler = (new SAXParser()).new BookHandler();
-		parser.setContentHandler(bookHandler);
-		parser.parse("C:\\Users\\Administrator\\Desktop\\Test\\event.xml");
+//		MongoDBJDBC.connectionMongoDB();
+//		XMLReader parser = XMLReaderFactory.createXMLReader();
+//		BookHandler bookHandler = (new SAXParser()).new BookHandler();
+//		parser.setContentHandler(bookHandler);
+//		parser.parse("C:\\Users\\Administrator\\Desktop\\Test\\event.xml");
 		// System.out.println(bookHandler.lines);
 		// 事务机制
-		MongoDBJDBC.findAll("Chubby", "Security");
+		//MongoDBJDBC.findAll("Chubby", "Security");
+		MongoDBJDBC mongoer=new MongoDBJDBC("Leung");
+		SAXParser saxParser=new SAXParser(mongoer, "Leung", "Security");
+		SAXParser.writeToMongo(saxParser);
 	}
 }

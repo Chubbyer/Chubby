@@ -58,8 +58,6 @@ public class SocketServer {
 				// 获得连接
 				Socket accpetSocket = new Socket();
 				accpetSocket = serverSocket.accept();
-				// 转移控制权，这里应该启动一个线程
-				// this.action(accpetSocket);
 
 				// 接收客户端发送内容
 				receiveData = Net.acceptData(accpetSocket);
@@ -75,9 +73,10 @@ public class SocketServer {
 				}
 				// 所有的任务都从这里转发
 				if (oType.equals(EC.E_301) && this.status.equals(SC.SERVER_OK)) {
-					System.out.println("正在转发E_301任务···");
-					// 附加的数据
+					
+					// 附加的数据，一般为姓名或学号或主机名
 					String additional = receiveData.toString().substring(3);
+					System.out.println("正在转发E_301("+additional+")任务···");
 					// 将本机的状态置为忙
 					if (--this.maxLinks == 0)
 						this.status = SC.SERVER_BUSY;
@@ -85,7 +84,7 @@ public class SocketServer {
 					// 启动EC.E_301所描述的任务
 					Tasker taskE_301 = new Tasker(accpetSocket,additional,EC.E_301);
 					comp.submit(taskE_301);
-					System.out.println("正在处理E_301任务···");
+					System.out.println("正在处理E_301("+additional+")任务···");
 				}
 				// 最后检查任务是否已执行完
 				int alreadyLinks=10-this.maxLinks;
