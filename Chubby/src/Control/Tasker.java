@@ -38,9 +38,8 @@ public class Tasker implements Callable<Object> {
 	@Override
 	public Object call() throws Exception {
 		// TODO Auto-generated method stub
-		Thread.sleep(3000);
-		if (eType.equals(EC.E_301)) {
-			
+		//Thread.sleep(3000);
+		if (eType.equals(EC.E_301)) {			
 			MongoDBJDBC mongoer = new MongoDBJDBC("User");
 			// 到User信息库当中去找能匹配userId的User
 			User user = mongoer.findUserInfo(userId);

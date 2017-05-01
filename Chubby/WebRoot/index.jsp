@@ -1,26 +1,79 @@
-<%@ page language="java" import="java.util.*" pageEncoding="ISO-8859-1"%>
+<%@ page language="java" import="java.util.*" pageEncoding="utf-8"%>
 <%
-String path = request.getContextPath();
-String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
 %>
 
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
-  <head>
-    <base href="<%=basePath%>">
-    
-    <title>My JSP 'index.jsp' starting page</title>
-	<meta http-equiv="pragma" content="no-cache">
-	<meta http-equiv="cache-control" content="no-cache">
-	<meta http-equiv="expires" content="0">    
-	<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
-	<meta http-equiv="description" content="This is my page">
-	<!--
-	<link rel="stylesheet" type="text/css" href="styles.css">
-	-->
-  </head>
-  
-  <body>
-    This is my JSP page. <br>
-  </body>
+<head>
+<base href="<%=basePath%>">
+
+<title>Chubby</title>
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="expires" content="0">
+<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+<meta http-equiv="description" content="This is my page">
+<!-- 确保在移动设备可用 -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- 新 Bootstrap 核心 CSS 文件 -->
+<link rel="stylesheet" href="./css/bootstrap.min.css">
+
+<!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
+<script src="./jQuery/jquery-3.1.1.min.js"></script>
+
+<!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+<script src="./js/bootstrap.min.js"></script>
+
+<link rel="stylesheet" type="text/css" href="css/IndexPageCSS.css">
+<script src="js/IndexPageJS.js"></script>
+<script type="text/javascript">
+	$(document).ready(function() {
+		actionBack();
+		$("#search").keydown(function(e) {
+			if (e.keyCode == 13) {
+				//alert($("#search").val());
+				//$("form").submit();
+				//var url = "PersonOverview?serach=" + $("#search").val();
+				//$.get(url);
+				//window.open('baidu.com');
+			}
+		});
+	});
+</script>
+
+</head>
+<body>
+	<div class="container-fluid">
+		<div class="row">
+			<div class="title">
+				<h1>Chubby</h1>
+				<br>
+				<form method="post" action="PersonOverview">
+					<input name="search" type="search" placeholder="试着输入你的学号或姓名">
+				</form>
+				<h3>MAY.01 - 2017</h3><br>
+			</div>
+		</div>
+		<div class="row hotTopic">
+			<div class="row">
+				<button type="button" class="btn btntopic btn-primary">“最强王者”</button>
+				<button type="button" class="btn btntopic btn-success">真正的“守夜人”</button>
+				<button type="button" class="btn btntopic btn-info">LeungJain</button>
+				<button type="button" class="btn btntopic btn-warning">（警告）Warning</button>
+			</div>
+			<div class="row">
+				<br>
+			</div>
+			<div class="row">
+				<button type="button" class="btn btntopic btn-default">Default</button>
+				<button type="button" class="btn btntopic btn-info">Info</button>
+				<button type="button" class="btn btntopic btn-primary">Primary</button>
+			</div>
+		</div>
+	</div>
+</body>
 </html>

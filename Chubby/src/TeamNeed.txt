@@ -12,6 +12,6 @@
 3.从以上建立的数据库中分析出可以用于展示的信息另存在同一数据库下的R_Application、R_Security、R_System
 集合之中。
 4.单独创建User数据库再创建Info集合描述所有同学关于他们的日志的一些相关信息：Name,Sno,Sys（系统）,Host(主机名)，
-LogLiens（日志的数量）,Flag(是否已提取所有的日志事件至数据库)，R_Flag(是否已建立可展示的信息库),Open_Id（开机事件所对应的ID）,
-Close_Id（关机事件所对应的ID）
+LogLiens（日志的数量，这里指Security文件）,Flag(是否已提取所有的日志事件至数据库)，R_Flag(是否已建立可展示的信息库),
+Open_Id（开机事件所对应的ID）,Close_Id（关机事件所对应的ID）
 ({Name:"梁健",Sno:"631406010412",Sys:"Windows10",Host:"Leung",LogLines:10000,Flag:0,R_Flag:0,Open_Id:"4798",Close_Id:"4647"})

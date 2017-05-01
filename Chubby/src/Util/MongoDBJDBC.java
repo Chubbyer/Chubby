@@ -36,15 +36,17 @@ public class MongoDBJDBC {
 	}
 
 	// 连接到MongoDB数据库
-	public void connectionMongoDB() {
+	public boolean connectionMongoDB() {
 		try {
 			// 连接到 mongodb 服务
 			@SuppressWarnings("resource")
 			MongoClient mongoClient = new MongoClient(MongoDBJDBC.ip,
 					MongoDBJDBC.port);
 			this.mongoClient = mongoClient;
+			return true;
 		} catch (Exception e) {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			return false;
 		}
 	}
 
@@ -56,8 +58,7 @@ public class MongoDBJDBC {
 
 	// 在指定的数据库下创建MonngoDB集合
 	public void createCollection(String colleName) {
-		this.connectionMongoDB();
-		if (this.mongoClient != null) {
+		if (this.connectionMongoDB() && this.mongoClient != null) {
 			// 连接到数据库并创建集合
 			this.mongoClient.getDatabase(dbName).createCollection(colleName);
 			this.writeLog("创建了集合" + colleName);
@@ -137,20 +138,19 @@ public class MongoDBJDBC {
 			final ArrayList<Event> events = new ArrayList<Event>();
 			MongoCollection<Document> collection = this.mongoClient
 					.getDatabase(this.dbName).getCollection(colleName);
-
 			Block<Document> printBlock = new Block<Document>() {
 				@Override
 				public void apply(final Document document) {
 					events.add(JSONParser.getEventFromJSONStr(document.toJson()));
-					//System.out.println(document.toJson());
+					// System.out.println(document.toJson());
 				}
 			};
 			collection.find(and(gt("i", startIndex), lte("i", endIndex)))
 					.forEach(printBlock);
 			return events;
 		} catch (Exception e) {
-			//System.err.println(e.getClass().getName() + ": " + e.getMessage());
-			e.printStackTrace();
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			// e.printStackTrace();
 			return null;
 		}
 	}
@@ -159,36 +159,40 @@ public class MongoDBJDBC {
 	 * 查找某个同学关于他的文件信息,参数str表示为姓名或学号或主机名
 	 */
 	public User findUserInfo(String str) {
-		this.connectionMongoDB();
-		MongoCollection<Document> collection = this.mongoClient.getDatabase(
-				"User").getCollection("Info");
-		Document document = new Document();
-		document = collection.find(
-				or(eq("Name", str), eq("Sno", str), eq("Host", str))).first();
-		System.out.println(document.toJson());
-		this.closeMongoDB();
-		return JSONParser.getUserFromJSONStr(document.toJson());
-
+		if (this.connectionMongoDB()) {
+			MongoCollection<Document> collection = this.mongoClient
+					.getDatabase("User").getCollection("Info");
+			Document document = new Document();
+			document = collection.find(
+					or(eq("Name", str), eq("Sno", str), eq("Host", str)))
+					.first();
+			System.out.println(document.toJson());
+			this.closeMongoDB();
+			return JSONParser.getUserFromJSONStr(document.toJson());
+		}
+		return null;
 	}
 
 	/*
 	 * 更新User的信息
 	 */
 	public void updateUserInfo(String hostName, String key, Object value) {
-		this.connectionMongoDB();
-		MongoCollection<Document> collection = this.mongoClient.getDatabase(
-				"User").getCollection("Info");
-		collection.updateOne(eq("Host", hostName), set(key, value));
-		this.closeMongoDB();
+		if (this.connectionMongoDB()) {
+			MongoCollection<Document> collection = this.mongoClient
+					.getDatabase("User").getCollection("Info");
+			collection.updateOne(eq("Host", hostName), set(key, value));
+			this.closeMongoDB();
+		}else {
+			System.out.println("更新"+hostName+"用户的信息失败！");
+		}
 	}
 
 	/*
-	 * 将我们分析的结果写入以R_打头的集合中
+	 * 将我们分析的结果（所有的）一次性写入以R_打头的集合中
 	 */
 	public void insertChubbyers(String host, ArrayList<String> cbs) {
 		ArrayList<Document> documents = new ArrayList<Document>();
-		this.connectionMongoDB();
-		if (this.mongoClient != null) {
+		if (this.connectionMongoDB()&&this.mongoClient != null) {
 			for (int i = 0; i < cbs.size(); i++) {
 				documents.add(new Document("point", cbs.get(i)));
 			}
@@ -196,20 +200,22 @@ public class MongoDBJDBC {
 			MongoCollection<Document> collection = this.mongoClient
 					.getDatabase(host).getCollection("R_Security");
 			collection.insertMany(documents);
-			//更新User信息
-			collection = this.mongoClient.getDatabase(
-					"User").getCollection("Info");
+			// 更新User信息
+			collection = this.mongoClient.getDatabase("User").getCollection(
+					"Info");
 			collection.updateOne(eq("Host", host), set("R_Flag", true));
+			this.closeMongoDB();
 		}
-		this.closeMongoDB();
+		
 	}
+
 	/*
 	 * 将数据库中分析好的结果从R_集合读出来
 	 */
 	@SuppressWarnings("finally")
 	public ArrayList<String> findAllChubbyers(String host) {
 		this.connectionMongoDB();
-		ArrayList<String> chubbyers=new ArrayList<String>();
+		ArrayList<String> chubbyers = new ArrayList<String>();
 		try {
 			MongoCollection<Document> collection = this.mongoClient
 					.getDatabase(host).getCollection("R_Security");
@@ -217,11 +223,12 @@ public class MongoDBJDBC {
 			MongoCursor<Document> cursor = collection.find().iterator();
 			try {
 				while (cursor.hasNext()) {
-					String chubbyer=JSONParser.getChubbyerFromJSON(cursor.next().toJson());
+					String chubbyer = JSONParser.getChubbyerFromJSON(cursor
+							.next().toJson());
 					System.out.println(chubbyer);
-					if(chubbyer.equals(null))
+					if (chubbyer.equals(null))
 						chubbyers.add(chubbyer);
-					
+
 				}
 			} finally {
 				cursor.close();
@@ -235,25 +242,25 @@ public class MongoDBJDBC {
 
 	public static void main(String[] args) {
 		// MongoDBJDBC.createCollection("Security");
-		ArrayList<String> cbs=new ArrayList<String>();
+		ArrayList<String> cbs = new ArrayList<String>();
 		cbs.add("{'ot':'123','ct':'234'}");
 		cbs.add("{'ot':'123','ct':'234'}");
-		//MongoDBJDBC mongoer = new MongoDBJDBC("Leung");
-		//mongoer.connectionMongoDB();
-		//mongoer.insertChubbyers("Chubby", cbs);
-		//mongoer.findAllChubbyers("Chubby");
+		// MongoDBJDBC mongoer = new MongoDBJDBC("Leung");
+		// mongoer.connectionMongoDB();
+		// mongoer.insertChubbyers("Chubby", cbs);
+		// mongoer.findAllChubbyers("Chubby");
 		// mongoer.connectionMongoDB();
 		// MongoDBJDBC.findAll("Chubby", "myLogs");
-		//mongoer.findEvents("Security", 0,30);
-		//System.out.println(mongoer.findUserInfo("Leung").getFlag());
-		//mongoer.updateUserInfo("Leung", "Flag", false);
+		// mongoer.findEvents("Security", 0,30);
+		// System.out.println(mongoer.findUserInfo("Leung").getFlag());
+		// mongoer.updateUserInfo("Leung", "Flag", false);
 		// boolean flag=MongoDBJDBC.findUserInfo("Leung").getFlag();
 		// if(flag==false)
 		// System.out.println("qq");
 		// mongoer.closeMongoDB();
-		
-		MongoDBJDBC mongoer = new MongoDBJDBC("User");				
+
+		MongoDBJDBC mongoer = new MongoDBJDBC("User");
 		mongoer.updateUserInfo("Leung", "LogLines", 15000);
-		//System.out.println(mongoer.findUserInfo("Leung").getName());
+		// System.out.println(mongoer.findUserInfo("Leung").getName());
 	}
 }
