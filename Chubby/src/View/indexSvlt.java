@@ -2,11 +2,14 @@ package View;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import Control.SocketClient;
 
 @SuppressWarnings("serial")
 /*
@@ -46,8 +49,19 @@ public class indexSvlt extends HttpServlet {
 		request.setCharacterEncoding("utf-8");// 识别中文
 		response.setCharacterEncoding("utf-8");// 识别中文
 		response.setContentType("text/html");
+		SocketClient sClient = new SocketClient();
+		// System.out.println(sClient.checkConnection());
+		@SuppressWarnings("unchecked")
+		ArrayList<String> chubbyers = (ArrayList<String>) sClient
+				.getOneOverview("Leung");
+		System.out.println(chubbyers.size());
+		for (int i = 0; i < 50; i++) {
+			System.out.println(chubbyers.get(i));
+			System.out.println("Index");
 		request.getRequestDispatcher("index.jsp").forward(request,
 				response);
+		
+		}
 	}
 
 }

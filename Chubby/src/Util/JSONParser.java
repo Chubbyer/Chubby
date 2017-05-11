@@ -64,14 +64,25 @@ public class JSONParser {
 	
 
 	public static void main(String[] args) {
-		// String
-		// jsonStr="{ '_id' : { '$oid' : '59005de2dca30f934892ed0e' }, 'i' : 7, 'eventID' : '4798', 'TimeCreated' : '2017-04-18 13:49:01' }";
-		// Event event=JSONParser.getEventFromJSONStr(jsonStr);
-		// System.out.println(event.getEventID());
-		String str = "301|Leung";
-		String[] strs = str.split("|");
-		for (int i = 0; i < strs.length; i++) {
-			System.out.println(strs[i]);
+		String	jsonStr="{'ot':'2017-12-03 12:21:21','ct':'2017-12-03 12:21:21'}";
+		try {JSONObject jsonObj = new JSONObject(jsonStr);
+//		String string=TimeParser.getChubbyerString(jsonObj.getString("ot"))
+//		.substring(0, 10);
+//		// Event event=JSONParser.getEventFromJSONStr(jsonStr);
+//		 //jsonObj.getString("ot").replace('-', '/');
+//			System.out.println(string);
+//			String string2=TimeParser
+//					.getChubbyerString(jsonObj.getString("ct")).substring(
+//							11);
+//			System.out.println(string2);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+//		String str = "301|Leung";
+//		String[] strs = str.split("|");
+//		for (int i = 0; i < strs.length; i++) {
+//			System.out.println(strs[i]);
+//		}
 	}
 }

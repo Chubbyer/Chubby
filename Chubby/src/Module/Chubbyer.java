@@ -6,9 +6,9 @@ package Module;
  */
 public class Chubbyer {
 	public String day;
-	public String points;
-	public Chubbyer(String day,String points) {
+	public double point;
+	public Chubbyer(String day,double point) {
 		this.day=day;
-		this.points=points;
+		this.point=point;
 	}
 }

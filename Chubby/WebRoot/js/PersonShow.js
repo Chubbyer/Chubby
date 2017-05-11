@@ -1,30 +1,33 @@
-function showChart1(){
+function showChart1(data) {
 	var myChart1 = echarts.init(document.getElementById('myChart1'));
 	myChart1.setOption({
-	    title: {
-	        text: '异步数据加载示例'
-	    },
-	    tooltip: {},
-	    legend: {
-	        data:['销量']
-	    },
-	    xAxis: {
-	        data: []
-	    },
-	    yAxis: {},
-	    series: [{
-	        name: '销量',
-	        type: 'bar',
-	        data: []
-	    }]
+		title : {
+			text : '异步数据加载示例'
+		},
+		tooltip : {},
+		legend : {
+			data : [ '使用时间' ]
+		},
+		xAxis : {
+			data : [ "2017/4/23", "2017/4/24", "2017/4/25", "2017/4/26",
+					"2017/4/27", "2017/4/28" ]
+		},
+		yAxis : {},
+		series : [ {
+			name : '使用时间',
+			type : 'bar',
+			data : [ 5, 20, 36, 10, 10, 20 ]
+		} ]
 	});
-	function fetchData(cb) {
+	data({
+		categories : [ "2017/4/23", "2017/4/24", "2017/4/25", "2017/4/26",
+				"2017/4/27", "2017/4/28" ],
+		data : [ 5, 20, 36, 10, 10, 20 ]
+	});
+	function fetchData(data) {
 		// 通过 setTimeout 模拟异步加载
 		setTimeout(function() {
-			cb({
-				categories : [ "衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子" ],
-				data : [ 5, 20, 36, 10, 10, 20 ]
-			});
+			cb = data;
 		}, 3000);
 	}
 	// 初始 option
@@ -34,21 +37,21 @@ function showChart1(){
 		},
 		tooltip : {},
 		legend : {
-			data : [ '销量' ]
+			data : [ '使用时间' ]
 		},
 		xAxis : {
-			data : []
+			data : [ "2017/4/23", "2017/4/24", "2017/4/25", "2017/4/26",
+					"2017/4/27", "2017/4/28" ]
 		},
 		yAxis : {},
 		series : [ {
-			name : '销量',
+			name : '使用时间',
 			type : 'bar',
-			data : []
+			data : [ 5, 20, 36, 10, 10, 20 ]
 		} ]
 	};
 
 	myChart1.showLoading();
-
 	fetchData(function(data) {
 		myChart1.hideLoading();
 		myChart1.setOption({
@@ -57,31 +60,25 @@ function showChart1(){
 			},
 			series : [ {
 				// 根据名字对应到相应的系列
-				name : '销量',
+				name : '使用时间',
 				data : data.data
 			} ]
 		});
 	});
 }
-function showChart2(){
+function showChart2() {
 	var myData = [ {
 		value : 235,
-		name : '视频广告'
+		name : '上午（12:00以前）'
 	}, {
 		value : 274,
-		name : '联盟广告'
+		name : '下午（12:00-19:00）'
 	}, {
 		value : 310,
-		name : '邮件营销'
-	}, {
-		value : 335,
-		name : '直接访问'
-	}, {
-		value : 400,
-		name : '搜索引擎'
+		name : '晚上（19:00以后）'
 	} ];
-	var myChart = echarts.init(document.getElementById('main'));
-	myChart.setOption({
+	var myChart2 = echarts.init(document.getElementById('myChart2'));
+	myChart2.setOption({
 		title : {
 			text : '一天中PC使用时间分布'
 		},
@@ -94,151 +91,112 @@ function showChart2(){
 		} ]
 	})
 }
-function showChart3(){
+function showChart3() {
 	var myChart3 = echarts.init(document.getElementById('myChart3'));
-	var dataAll = [	[
-	                   [10.0, 8.04],
-	                   [8.0, 6.95],
-	                   [13.0, 7.58],
-	                   [9.0, 8.81],
-	                   [11.0, 8.33],
-	                   [14.0, 9.96],
-	                   [6.0, 7.24],
-	                   [4.0, 4.26],
-	                   [12.0, 10.84],
-	                   [7.0, 4.82],
-	                   [5.0, 5.68]
-	               ],
-	               [
-	                   [10.0, 9.14],
-	                   [8.0, 8.14],
-	                   [13.0, 8.74],
-	                   [9.0, 8.77],
-	                   [11.0, 9.26],
-	                   [14.0, 8.10],
-	                   [6.0, 6.13],
-	                   [4.0, 3.10],
-	                   [12.0, 9.13],
-	                   [7.0, 7.26],
-	                   [5.0, 4.74]
-	               ],
-	               [
-	                   [10.0, 7.46],
-	                   [8.0, 6.77],
-	                   [13.0, 12.74],
-	                   [9.0, 7.11],
-	                   [11.0, 7.81],
-	                   [14.0, 8.84],
-	                   [6.0, 6.08],
-	                   [4.0, 5.39],
-	                   [12.0, 8.15],
-	                   [7.0, 6.42],
-	                   [5.0, 5.73]
-	               ],
-	               [
-	                   [8.0, 6.58],
-	                   [8.0, 5.76],
-	                   [8.0, 7.71],
-	                   [8.0, 8.84],
-	                   [8.0, 8.47],
-	                   [8.0, 7.04],
-	                   [8.0, 5.25],
-	                   [19.0, 12.50],
-	                   [8.0, 5.56],
-	                   [8.0, 7.91],
-	                   [8.0, 6.89]
-	               ]
-	           ];
+	var dataAll = [
+			[ [ "2017/04/12", 8.4 ], [ "2017/04/13", 6.9 ],
+					[ "2017/04/14", 7.8 ], [ "2017/04/15", 8.1 ],
+					[ "2017/04/16", 8.3 ], [ "2017/04/17", 9.6 ],
+					[ "2017/04/18", 7.4 ], [ "2017/04/19", 4.6 ],
+					[ "2017/04/20", 10.4 ], [ "2017/04/21", 4.2 ],
+					[ "2017/04/22", 5.8 ] ],
+			[ [ "2017/04/12", 9.4 ], [ "2017/04/13", 8.9 ],
+					[ "2017/04/14", 9.8 ], [ "2017/04/15", 10.1 ],
+					[ "2017/04/16", 11.3 ], [ "2017/04/17", 12.6 ],
+					[ "2017/04/18", 8.4 ], [ "2017/04/19", 6.6 ],
+					[ "2017/04/20", 11.4 ], [ "2017/04/21", 9.2 ],
+					[ "2017/04/22", 7.8 ] ]
+			];
 
-	           var markLineOpt = {
-	               animation: false,
-	               label: {
-	                   normal: {
-	                       formatter: 'y = 0.5 * x + 3',
-	                       textStyle: {
-	                           align: 'right'
-	                       }
-	                   }
-	               },
-	               lineStyle: {
-	                   normal: {
-	                       type: 'solid'
-	                   }
-	               },
-	               tooltip: {
-	                   formatter: 'y = 0.5 * x + 3'
-	               },
-	               data: [[{
-	                   coord: [0, 3],
-	                   symbol: 'none'
-	               }, {
-	                   coord: [20, 13],
-	                   symbol: 'none'
-	               }]]
-	           };
+	var markLineOpt = {
+		animation : false,
+		label : {
+			normal : {
+				formatter : 'y = 0.5 * x + 3',
+				textStyle : {
+					align : 'right'
+				}
+			}
+		},
+		lineStyle : {
+			normal : {
+				type : 'solid'
+			}
+		},
+		tooltip : {
+			formatter : 'y = 0.5 * x + 3'
+		},
+		data : [ [ {
+			coord : [ 0, 3 ],
+			symbol : 'none'
+		}, {
+			coord : [ 20, 13 ],
+			symbol : 'none'
+		} ] ]
+	};
 
-	           var option = {
-	               title: {
-	                   text: 'Anscombe\'s quartet',
-	                   x: 'center',
-	                   y: 0
-	               },
-	               grid: [
-	                   {x: '7%', y: '7%', width: '90%', height: '80%'},
+	var option = {
+		title : {
+			text : '开关机时点分布',
+			x : 'center',
+			y : 0
+		},
+		grid : [ {
+			x : '7%',
+			y : '7%',
+			width : '90%',
+			height : '78%'
+		},
 
-	               ],
-	               tooltip: {
-	                   formatter: 'Group {a}: ({c})'
-	               },
-	               xAxis: [
-	                   {gridIndex: 0, min: 0, max: 20},
+		],
+		tooltip : {
+			formatter : 'Group {a}: ({c})'
+		},
+		xAxis : [ {
+			gridIndex : 0,
+			type:'time',
+			//min : 0,
+			//max : 20
+			data : ["2017/04/12", "2017/04/13",
+						"2017/04/14", "2017/04/15",
+						"2017/04/16", "2017/04/17",
+						"2017/04/18", "2017/04/19",
+						"2017/04/20", "2017/04/21",
+						"2017/04/22", "2017/04/23" ]
+		},
 
-	               ],
-	               yAxis: [
-	                   {gridIndex: 0, min: 0, max: 15},
+		],
+		yAxis : [ {
+			gridIndex : 0,
+			//min : 0,
+			//max : 15
+		},
 
-	               ],
-	               dataZoom: [
-	                          {
-	                              type: 'slider',
-	                              start: 1,
-	                              end: 35
-	                          }
-	                      ],
-	               series: [
-	                   {
-	                       name: 'I',
-	                       type: 'scatter',
-	                       xAxisIndex: 0,
-	                       yAxisIndex: 0,
-	                       data: dataAll[0],
-	                       markLine: markLineOpt
-	                   },
-	                   {
-	                       name: 'II',
-	                       type: 'scatter',
-	                       xAxisIndex: 0,
-	                       yAxisIndex: 0,
-	                       data: dataAll[1],
-	                       markLine: markLineOpt
-	                   },
-	                   {
-	                       name: 'III',
-	                       type: 'scatter',
-	                       xAxisIndex: 0,
-	                       yAxisIndex: 0,
-	                       data: dataAll[2],
-	                       markLine: markLineOpt
-	                   },
-	                   {
-	                       name: 'IV',
-	                       type: 'scatter',
-	                       xAxisIndex: 0,
-	                       yAxisIndex: 0,
-	                       data: dataAll[3],
-	                       markLine: markLineOpt
-	                   }
-	               ]
-	           };
-	           myChart3.setOption(option);
+		],
+		dataZoom : [ {
+			type : 'slider',
+			start : 60,
+			end : 100
+		} ],
+		series : [ {
+			name : 'I',
+			type : 'scatter',
+			xAxisIndex : 0,
+			yAxisIndex : 0,
+			//data : dataAll[0],
+			data : [ 8.3, 7.5, 10.3, 10, 10, 20, 7, 12, 17,
+						11, 6, 13 ],
+			markLine : markLineOpt
+		}, {
+			name : 'II',
+			type : 'scatter',
+			xAxisIndex : 0,
+			yAxisIndex : 0,
+			//data : dataAll[1],
+			data : [ 9.3,9.5, 12.3, 11, 13, 12, 15, 16, 18,
+						13, 8, 17 ],
+			markLine : markLineOpt
+		} ]
+	};
+	myChart3.setOption(option);
 }

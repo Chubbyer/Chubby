@@ -52,10 +52,10 @@
 			<div class="title">
 				<h1>Chubby</h1>
 				<br>
-				<form method="post" action="PersonOverview">
+				<form method="post" action="Person">
 					<input name="search" type="search" placeholder="试着输入你的学号或姓名">
 				</form>
-				<h3>MAY.01 - 2017</h3><br>
+				<h3>MAY.02 - 2017</h3><br>
 			</div>
 		</div>
 		<div class="row hotTopic">

@@ -83,8 +83,8 @@ public class Analyzer implements Callable<Object> {
 								if (events.get(k).getEventID().equals(openId)) {
 									String closeTime = events.get(k)
 											.getTimeCreated();
-									chubbyer = "['ot':'" + openTime
-											+ "','ct':'" + closeTime + "']";
+									chubbyer = "{'ot':'" + openTime
+											+ "','ct':'" + closeTime + "'}";
 									chubbyers.add(chubbyer);
 									break;
 								}
