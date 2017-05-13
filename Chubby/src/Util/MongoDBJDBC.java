@@ -166,9 +166,11 @@ public class MongoDBJDBC {
 			document = collection.find(
 					or(eq("Name", str), eq("Sno", str), eq("Host", str)))
 					.first();
-			System.out.println(document.toJson());
+			// System.out.println(document.toJson());
 			this.closeMongoDB();
-			return JSONParser.getUserFromJSONStr(document.toJson());
+			if (document != null)
+				return JSONParser.getUserFromJSONStr(document.toJson());
+			return null;
 		}
 		return null;
 	}
@@ -182,8 +184,8 @@ public class MongoDBJDBC {
 					.getDatabase("User").getCollection("Info");
 			collection.updateOne(eq("Host", hostName), set(key, value));
 			this.closeMongoDB();
-		}else {
-			System.out.println("更新"+hostName+"用户的信息失败！");
+		} else {
+			System.out.println("更新" + hostName + "用户的信息失败！");
 		}
 	}
 
@@ -192,7 +194,7 @@ public class MongoDBJDBC {
 	 */
 	public void insertChubbyers(String host, ArrayList<String> cbs) {
 		ArrayList<Document> documents = new ArrayList<Document>();
-		if (this.connectionMongoDB()&&this.mongoClient != null) {
+		if (this.connectionMongoDB() && this.mongoClient != null) {
 			for (int i = 0; i < cbs.size(); i++) {
 				documents.add(new Document("point", cbs.get(i)));
 			}
@@ -206,7 +208,7 @@ public class MongoDBJDBC {
 			collection.updateOne(eq("Host", host), set("R_Flag", true));
 			this.closeMongoDB();
 		}
-		
+
 	}
 
 	/*

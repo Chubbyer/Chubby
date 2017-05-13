@@ -55,6 +55,7 @@
 				<form method="post" action="Person">
 					<input name="search" type="search" placeholder="试着输入你的学号或姓名">
 				</form>
+				<span style="color:#fff">${requestScope.errorInfo}</span>
 				<h3>MAY.02 - 2017</h3><br>
 			</div>
 		</div>

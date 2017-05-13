@@ -14,6 +14,8 @@
 		<title>事务合作协议</title>
 		<description>其他需要一并传送的数据附加之后,如果附加的数据需要格式化请参考其他相关的协议</description>
 		<content>301：获取某个人的PC使用总体情况</content>
+		<content>301_1：获取某个人每天使用PC多少小时</content>
+		<content>301_2：获取某个人的PC使用时间在一天中的分布</content>
 		<content>302：获取某个人一般在什么时候开机</content>
 		<content>303：获取某个人一般在什么时候关机</content>
 	</Protocol>

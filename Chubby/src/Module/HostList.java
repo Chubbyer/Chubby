@@ -8,7 +8,7 @@ import java.util.Random;
  * 数据处理机Chubbyer
  */
 public class HostList {
-	private static Host[] hosts={
+	public static Host[] hosts={
 			new Host("127.0.0.1",10001),
 			new Host("127.0.0.1",10002),
 			new Host("127.0.0.1",10003),
@@ -22,9 +22,7 @@ public class HostList {
 		return null;
 	}
 	public static void main(String[] args) {
-		System.out.println(HostList.nextHost().getPort());
-		System.out.println(HostList.nextHost().getPort());
-		System.out.println(HostList.nextHost().getPort());
-		System.out.println(HostList.nextHost().getPort());
+
+		System.out.println(HostList.hosts[0]);
 	}
 }

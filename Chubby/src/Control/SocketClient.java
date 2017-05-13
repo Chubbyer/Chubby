@@ -17,6 +17,7 @@ import Module.Host;
 import Module.HostList;
 import Protocol.EC;
 import Protocol.SC;
+import Util.ChubbyerParser;
 import Util.Net;
 import Util.TimeParser;
 
@@ -36,14 +37,43 @@ public class SocketClient implements Callable<Object> {
 		this.taskType = taskType;
 	}
 
+	public SocketClient(String taskType) {
+		this.taskType = taskType;
+	}
+
 	public SocketClient() {
 		// TODO Auto-generated constructor stub
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Object call() throws Exception {
 		// TODO Auto-generated method stub
-		if (this.taskType.equals(EC.E_301)) {
+		// 任务分发
+		if (this.taskType.equals(EC.E_301_1)) {
+			ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
+			ArrayList<String> chubbyerString = (ArrayList<String>) this
+					.getOneOverview(serCondition);
+			//加工getOneOverview函数的结果，方便在页面上展示EC-301_1任务的结果,得到每天使用多少小时
+			chubbyers = ChubbyerParser.getUseTime(chubbyerString);
+			System.out.println("SocketClient已返回数据");
+			return chubbyers;
+		}
+		if (this.taskType.equals(EC.E_301_2)) {
+			ArrayList<String> chubbyerString = (ArrayList<String>) this
+					.getOneOverview(serCondition);
+			double[] useHours;
+			return null;
+		}
+		if (this.taskType.equals(EC.E_301_3)) {
+			ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
+			ArrayList<String> chubbyerString = (ArrayList<String>) this
+					.getOneOverview(serCondition);
+			chubbyers = this.getUseTimeScatter(chubbyerString);
+			System.out.println("SocketClient已返回数据");
+			return chubbyers;
+		}
+		if (this.taskType.equals(EC.E_302)) {
 
 		}
 		return null;
@@ -117,35 +147,43 @@ public class SocketClient implements Callable<Object> {
 		return null;
 	}
 
-	/*
-	 * 加工getOneOverview函数的结果，方便在页面上展示EC-301任务的结果
-	 */
-	public ArrayList<Chubbyer> getOpenChubbyers(ArrayList<String> chubbyerString) {
-		ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
-		ArrayList<String> openDays = new ArrayList<String>();
-		ArrayList<String> openPoints = new ArrayList<String>();
-		
-		System.out.println(chubbyerString.size());
-		JSONObject jsonObj;
-//		try {
-//			for (int i = 0; i < chubbyerString.size(); i++) {
-//				jsonObj = new JSONObject(chubbyers.get(i));
-//				openDays.add(TimeParser.getChubbyerString(jsonObj.getString("ot"))
-//						.substring(0, 10));
-//				openPoints.add(TimeParser
-//						.getChubbyerString(jsonObj.getString("ct")).substring(
-//								11));
-//				 System.out.println(chubbyers.get(i));
-//			}
-//		} catch (JSONException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//			System.out.println("Client端的JSON解析出错");
-//		}
 
+	/*
+	 * 加工getOneOverview函数的结果，方便在页面上展示EC-301_2任务的结果,得到使用时间在一天中的分布
+	 */
+	public double[] getUseHoursDistribut(ArrayList<String> chubbyerString) {
 		return null;
 
 	}
+
+	/*
+	 * 加工getOneOverview函数的结果，方便在页面上展示EC-301_3任务的结果,得到开关机时间点
+	 */
+	public ArrayList<Chubbyer> getUseTimeScatter(
+			ArrayList<String> chubbyerString) {
+		ArrayList<Chubbyer> openChubbyers = new ArrayList<Chubbyer>();
+		ArrayList<Chubbyer> closeChubbyers = new ArrayList<Chubbyer>();
+		JSONObject jsonObj = null;
+		try {
+			for (int i = 0; i < chubbyerString.size(); i++) {
+				jsonObj = new JSONObject(chubbyerString.get(i));
+				openChubbyers.add(TimeParser.getTimeScatter(jsonObj
+						.getString("ot")));
+				closeChubbyers.add(TimeParser.getTimeScatter(jsonObj
+						.getString("ct")));
+				// System.out.println(chubbyerString.get(i));
+			}
+			openChubbyers.addAll(closeChubbyers);
+			return openChubbyers;
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("Client端的JSON解析出错");
+		}
+		return null;
+	}
+
+	
 
 	public static void main(String[] args) {
 		SocketClient sClient = new SocketClient();

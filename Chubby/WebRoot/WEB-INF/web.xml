@@ -12,8 +12,17 @@
     <servlet-name>Person</servlet-name>
     <servlet-class>View.Person</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>Overview</servlet-name>
+    <servlet-class>View.Overview</servlet-class>
+  </servlet>
+
   <servlet-mapping>
     <servlet-name>Person</servlet-name>
     <url-pattern>/Person</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>Overview</servlet-name>
+    <url-pattern>/Overview</url-pattern>
   </servlet-mapping>
 </web-app>

@@ -76,12 +76,12 @@ public class Analyzer implements Callable<Object> {
 			for (int i = 0; i < events.size(); i++) {
 				String chubbyer = null;
 				if (events.get(i).getEventID().equals(closeId)) {
-					String openTime = events.get(i).getTimeCreated();
+					String closeTime = events.get(i).getTimeCreated();
 					for (int j = i + 1; j < events.size(); j++) {
 						if (events.get(j).getEventID().equals(closeId)) {
 							for (int k = j; k > i; k--) {
 								if (events.get(k).getEventID().equals(openId)) {
-									String closeTime = events.get(k)
+									String openTime = events.get(k)
 											.getTimeCreated();
 									chubbyer = "{'ot':'" + openTime
 											+ "','ct':'" + closeTime + "'}";

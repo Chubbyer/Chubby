@@ -44,15 +44,20 @@ public class Tasker implements Callable<Object> {
 			// 到User信息库当中去找能匹配userId的User
 			User user = mongoer.findUserInfo(userId);
 			ArrayList<String> chubbyers = this.getAllChubbyers(user);
+			ArrayList<String> finalChubbyers=new ArrayList<String>();
+			//调整时间顺序
+			for (int i = chubbyers.size(); i >0 ; i--) {
+				finalChubbyers.add(chubbyers.get(i-1));
+			}
 			this.complete = true;			
-			// 必须发送能够序列化的对象，这里的chubbyers是基于JSON格式的数组列表描述
+			// 必须发送能够序列化的对象，这里的finalChubbyers是基于JSON格式的数组列表描述
 			System.out.println("E_301任务已处理完毕，正在发送···");
-			Net.sentData(socket, chubbyers);
-			//System.out.println(chubbyers.size());
+			Net.sentData(socket, finalChubbyers);
+			//System.out.println(finalChubbyers.size());
 			System.out.println("E_301已发送完毕");
-			//把chubbyers写入R_集合
+			//把finalChubbyers写入R_集合
 			//mongoer=new MongoDBJDBC(user.getHost());
-			//mongoer.insertChubbyers(user.getHost(), chubbyers);
+			//mongoer.insertChubbyers(user.getHost(), finalChubbyers);
 			return true;
 		}
 		return complete;
@@ -160,7 +165,7 @@ public class Tasker implements Callable<Object> {
 		}
 		// 剩下的最后一个就是线程序号最大的那个
 		al.addAll(orderChubbyers.get(0).chubbyers);
-		System.out.println(al.size());
+		//System.out.println(al.size());
 		return al;
 	}
 

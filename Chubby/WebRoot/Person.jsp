@@ -37,78 +37,9 @@
 				// 基于准备好的dom，初始化echarts实例
 				//alert("adad");
 				//var myChart1 = echarts.init(document.getElementById('myChart1'));
-				var myChart1 = echarts
-						.init(document.getElementById("myChart1"));
-				// 显示标题，图例和空的坐标轴
-				myChart1.setOption({
-					title : {
-						text : '异步数据加载示例'
-					},
-					tooltip : {
-						trigger : 'axis',
-						axisPointer : {
-							type : 'cross'
-						}
-					},
-					legend : {
-						data : [ '使用时间' ]
-					},
-					toolbox : {
-						show : true,
-						feature : {
-							magicType : {
-								type : [ 'line', 'bar' ]
-							},
-							saveAsImage : {}
-						}
-					},
-					xAxis : {
-						type : 'category',
-						data : [],
-						name : '日期'
-					},
-					yAxis : {
-						type : 'value',
-						axisLabel : {
-							formatter : '{value} H'
-						}
-					},
-					dataZoom : [ {
-						type : 'slider',
-						start : 60,
-						end : 100
-					} ],
-					series : [ {
-						name : '使用时间',
-						type : 'bar',
-						data : []
-					} ]
-				});
-
-				// 异步加载数据
-				$.get("PersonOverview?oType=301").done(
-						function(data) {
-							//alert(data);
-							// 填入数据
-							myChart1.setOption({
-								xAxis : {
-									data : [ "2017/04/12", "2017/04/13",
-											"2017/04/14", "2017/04/15",
-											"2017/04/16", "2017/04/17",
-											"2017/04/18", "2017/04/19",
-											"2017/04/20", "2017/04/21",
-											"2017/04/22", "2017/04/23" ]
-								},
-								series : [ {
-									// 根据名字对应到相应的系列
-									name : '使用时间',
-									data : [ 5, 20, 18, 10, 10, 20, 7, 12, 17,
-											11, 6, 13 ]
-								} ]
-							});
-						});
+				
 				//ajaxData();
-				//showChart1();
+				showChart1();
 				showChart2();
 				showChart3();
 			});
