@@ -174,6 +174,31 @@ public class MongoDBJDBC {
 		}
 		return null;
 	}
+	/*
+	 * 查找某部分同学关于他们的文件信息
+	 */
+	public ArrayList<User> findUsersInfo(int startIndex,int endIndex) {
+		// MongoDBJDBC.connectionMongoDB();//这个方法比较特殊，在调用出统一连接，统一关闭
+		try {
+			final ArrayList<User> users = new ArrayList<User>();
+			MongoCollection<Document> collection = this.mongoClient
+					.getDatabase("User").getCollection("Info");
+			Block<Document> printBlock = new Block<Document>() {
+				@Override
+				public void apply(final Document document) {
+					users.add(JSONParser.getUserFromJSONStr(document.toJson()));
+					// System.out.println(document.toJson());
+				}
+			};
+			collection.find(and(gt("i", startIndex), lte("i", endIndex)))
+					.forEach(printBlock);
+			return users;
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			// e.printStackTrace();
+			return null;
+		}
+	}
 
 	/*
 	 * 更新User的信息
@@ -198,7 +223,6 @@ public class MongoDBJDBC {
 			for (int i = 0; i < cbs.size(); i++) {
 				documents.add(new Document("point", cbs.get(i)));
 			}
-
 			MongoCollection<Document> collection = this.mongoClient
 					.getDatabase(host).getCollection("R_Security");
 			collection.insertMany(documents);

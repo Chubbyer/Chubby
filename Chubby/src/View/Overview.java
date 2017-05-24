@@ -21,6 +21,7 @@ import Control.ClientTasker;
 import Module.Chubbyer;
 import Module.OrderChubbyer;
 import Protocol.EC;
+import Util.ChubbyerParser;
 
 public class Overview extends HttpServlet {
 
@@ -46,27 +47,82 @@ public class Overview extends HttpServlet {
 				executor);
 		PrintWriter out = response.getWriter();
 		String optType = request.getParameter("oType").trim();
-		if(optType.equals(EC.E_302)){
-			int threadNum = 3;// 开3个线程
+		// 获得所有同学的平均PC使用时间并排序
+		if (optType.equals(EC.E_302)) {
+			int threadNum = 3;// 开3个线程，i表示线程序号
 			for (int i = 0; i < threadNum; i++) {
-				comp.submit(new ClientTasker(EC.E_302, i));
+				comp.submit(new ClientTasker(EC.E_302, i + 1));
 			}
-			ArrayList<Chubbyer> chubbyers=new ArrayList<Chubbyer>();
-			ArrayList<String> chubbyersString=new ArrayList<String>();
+			ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
+			ArrayList<String> chubbyerString = new ArrayList<String>();
 			for (int i = 0; i < threadNum; i++) {
 				try {
-					// 获得已完成任务的子线程的结果
+					// 获得已完成任务的子线程的结果,每个线程返回的是一批同学的PC平均使用时间
+					// 结果是基于JSON格式的描述
 					Future<Object> future = comp.take();
 					@SuppressWarnings("unchecked")
 					ArrayList<String> chubbyer = (ArrayList<String>) future
 							.get();
-					chubbyersString.addAll(chubbyer);
+					chubbyerString.addAll(chubbyer);
 				} catch (InterruptedException | ExecutionException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
+			// 按使用时间排序并加工成Chubbyer对象的列表
+			chubbyers = ChubbyerParser.sortChubbyersForRanking(chubbyerString);
+			// 把ArrayList转换成JSON
+			String jsonStr = null;
+			ArrayList<String> names = new ArrayList<String>();
+			ArrayList<Double> hours = new ArrayList<Double>();
+			for (Chubbyer chubbyer : chubbyers) {
+				names.add("\"" + chubbyer.day + "\"");
+				hours.add(chubbyer.point);
+			}
+			jsonStr = "{" + "\"names\"" + ":" + names + "," + "\"hours\"" + ":"
+					+ hours + "}";
+			// 向前端发送JSON串
+			out.println(jsonStr);
 		}
+		// 获得所有同学的开关机时点
+		if (optType.equals(EC.E_303)) {
+			int threadNum = 3;// 开3个线程，i表示线程序号
+			for (int i = 0; i < threadNum; i++) {
+				comp.submit(new ClientTasker(EC.E_303, i + 1));
+			}
+			ArrayList<String> openPoints = new ArrayList<String>();
+			ArrayList<String> closePoints = new ArrayList<String>();
+			for (int i = 0; i < threadNum; i++) {
+				try {
+					// 获得已完成任务的子线程的结果,每个线程返回的是一批同学的PC平均使用时间
+					// 结果是基于JSON格式的描述
+					Future<Object> future = comp.take();
+					@SuppressWarnings("unchecked")
+					ArrayList<String> chubbyerString = (ArrayList<String>) future
+							.get();
+					for (int j = 0; j < chubbyerString.size(); j++) {
+						if (i < chubbyerString.size() / 2) {
+							// 前半部分的数据是开机的节点
+							openPoints.add(chubbyerString.get(i));
+						} else {
+							// 后半部分的数据是关机的节点
+							closePoints.add(chubbyerString.get(i));
+						}
+					}
+				} catch (InterruptedException | ExecutionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			// 把ArrayList转换成JSON
+			String jsonStr = null;
+			jsonStr = "{" + "\"openPoints\":" + openPoints + ","
+					+ "\"closePoints\":" + closePoints + "}";
+			// 向前端发送JSON串
+			out.println(jsonStr);
+		}
+		out.flush();
+		out.close();
 	}
 
 	/**

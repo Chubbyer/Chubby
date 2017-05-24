@@ -14,6 +14,7 @@ import Module.Chubbyer;
 import Module.OrderChubbyer;
 import Module.User;
 import Protocol.EC;
+import Util.ChubbyerParser;
 import Util.MongoDBJDBC;
 import Util.Net;
 import Util.SAXParser;
@@ -31,6 +32,11 @@ public class Tasker implements Callable<Object> {
 		this.eType = eType;
 	}
 
+	public Tasker(String userId, String eType) {
+		this.userId = userId;
+		this.eType = eType;
+	}
+
 	public Tasker() {
 		// TODO Auto-generated constructor stub
 	}
@@ -38,30 +44,55 @@ public class Tasker implements Callable<Object> {
 	@Override
 	public Object call() throws Exception {
 		// TODO Auto-generated method stub
-		//Thread.sleep(3000);
-		if (eType.equals(EC.E_301)) {			
-			MongoDBJDBC mongoer = new MongoDBJDBC("User");
-			// 到User信息库当中去找能匹配userId的User
-			User user = mongoer.findUserInfo(userId);
-			ArrayList<String> chubbyers = this.getAllChubbyers(user);
-			ArrayList<String> finalChubbyers=new ArrayList<String>();
-			//调整时间顺序
-			for (int i = chubbyers.size(); i >0 ; i--) {
-				finalChubbyers.add(chubbyers.get(i-1));
-			}
-			this.complete = true;			
+		MongoDBJDBC mongoer = new MongoDBJDBC("User");
+		// 到User信息库当中去找能匹配userId的User
+		User user = mongoer.findUserInfo(userId);
+		ArrayList<String> chubbyers = this.getAllChubbyers(user);
+		ArrayList<String> finalChubbyers = new ArrayList<String>();
+		// 调整时间顺序
+		for (int i = chubbyers.size(); i > 0; i--) {
+			finalChubbyers.add(chubbyers.get(i - 1));
+		}
+		if (eType.equals(EC.E_301)) {
+			this.complete = true;
 			// 必须发送能够序列化的对象，这里的finalChubbyers是基于JSON格式的数组列表描述
 			System.out.println("E_301任务已处理完毕，正在发送···");
-			Net.sentData(socket, finalChubbyers);
-			//System.out.println(finalChubbyers.size());
-			System.out.println("E_301已发送完毕");
-			//把finalChubbyers写入R_集合
-			//mongoer=new MongoDBJDBC(user.getHost());
-			//mongoer.insertChubbyers(user.getHost(), finalChubbyers);
+			if (Net.sentData(socket, finalChubbyers))
+				// System.out.println(finalChubbyers.size());
+				System.out.println("E_301已发送成功");
+			// 把finalChubbyers写入R_集合
+			// mongoer=new MongoDBJDBC(user.getHost());
+			// mongoer.insertChubbyers(user.getHost(), finalChubbyers);
 			return true;
 		}
+		if (eType.equals(EC.E_302)) {
+			// EC-302任务是在301任务的结果之上进行的，对finalChubbyers再进行加工
+			// 302任务就是得到某个User的finalChubbyers之后得到其平均使用时间
+			// 这里可以借鉴SocketClient对于EC-301_1的操作
+			ArrayList<Chubbyer> chubbyerList = new ArrayList<Chubbyer>();
+			// 得到每天使用多少小时
+			chubbyerList = ChubbyerParser.getUseTime(finalChubbyers);
+			// 对chubbyerList加总求平均，再返回某个人平均使用时间
+			double average = 0;
+			for (int i = 0; i < chubbyerList.size(); i++) {
+				average += chubbyerList.get(i).point;
+			}
+			//System.out.println("Sum:"+average+" days:"+chubbyerList.size());
+			average = Math.round(average / chubbyerList.size() * 10) / 10.0;
+			Chubbyer userEC_302 = new Chubbyer(userId, average);
+			//System.out.println(userEC_302.point);
+			return userEC_302;
+		}
+		if (eType.equals(EC.E_303)) {
+			// EC-303任务是在301任务的结果之上进行的，对finalChubbyers再进行加工
+			// 303任务就是得到某个User的finalChubbyers之后得到其开关机节点
+			// 这里可以借鉴SocketClient对于EC-301_3的操作
+			ArrayList<Chubbyer> chubbyerList = new ArrayList<Chubbyer>();
+			// 得到每天的开关机时点
+			chubbyerList = ChubbyerParser.getUseTimeScatter(finalChubbyers);
+			return chubbyerList;
+		}
 		return complete;
-
 	}
 
 	/*
@@ -75,40 +106,37 @@ public class Tasker implements Callable<Object> {
 		ExecutorService executor = Executors.newCachedThreadPool();
 		CompletionService<Object> comp = new ExecutorCompletionService<>(
 				executor);
-		
+
 		MongoDBJDBC mongoer;
 		if (user.getR_Flag()) {
 			// 直接从前缀为R_的集合中提取数据加工发给客户端,这里涉及的数据量比较小
 			mongoer = new MongoDBJDBC(user.getHost());// 传入user的主机名
-			chubbyers=mongoer.findAllChubbyers(user.getHost());
-			
+			chubbyers = mongoer.findAllChubbyers(user.getHost());
+
 		} else if (user.getFlag()) {
 			// 从原始的数据库集合总分析出结果发送给客户端,这里涉及的数据量比较大
-			chubbyers=this.getChubbyers(user,comp);
-			
+			chubbyers = this.getChubbyers(user, comp);
+
 		} else {
 			// 从原始的文件开始分析,这里涉及的数据量比较大
 			// 先将文件读入数据库
 			mongoer = new MongoDBJDBC(user.getHost());// 传入user的主机名
 			SAXParser saxParser = new SAXParser(mongoer, user.getHost(),
 					"Security");
-			SAXParser.writeToMongo(saxParser);
+			SAXParser.writeToMongo(saxParser);// 执行结束后会将user.getFlag()=true
 			// 再从数据库分析，同user.getFlag()==true时
-			chubbyers=this.getChubbyers(user,comp);
+			chubbyers = this.getChubbyers(user, comp);
 		}
-		//chubbyers = this.sortChubbyers(orderChubbyers);
+		// chubbyers = this.sortChubbyers(orderChubbyers);
 		return chubbyers;
 	}
 
 	/*
-	 * 创建10个Analyzer线程处理E_301任务
-	 * 所有的线程都完成任务后返回最终结果
-	 * 并把最终的结果（我们想要的结果）写入R_集合
-	 * 下次就可以直接从R_集合读取结果
-	 * 为了节约时间，写入R_集合的操作在向客户端发送结束后写入
-	 * 被getAllChubbys方法调用
+	 * 创建10个Analyzer线程处理E_301任务 所有的线程都完成任务后返回最终结果 并把最终的结果（我们想要的结果）写入R_集合
+	 * 下次就可以直接从R_集合读取结果 为了节约时间，写入R_集合的操作在向客户端发送结束后写入 被getAllChubbys方法调用
 	 */
-	public ArrayList<String> getChubbyers(User user,CompletionService<Object> comp) {
+	public ArrayList<String> getChubbyers(User user,
+			CompletionService<Object> comp) {
 		// oType=2
 		// 存放子线程的结果:OrderChubbyer<String>
 		ArrayList<OrderChubbyer<String>> orderChubbyers = new ArrayList<OrderChubbyer<String>>();
@@ -124,19 +152,17 @@ public class Tasker implements Callable<Object> {
 				OrderChubbyer<String> orderChubbyer = (OrderChubbyer<String>) future
 						.get();
 				orderChubbyers.add(orderChubbyer);
-				
-
 			} catch (InterruptedException | ExecutionException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		System.out.println("最终接受到"+orderChubbyers.size()+"个线程结果");
-		System.out.println("顺序：");
-		for (OrderChubbyer<String> orderChubbyer : orderChubbyers) {
-			System.out.println("Order:"+orderChubbyer.order);
-		}
-		ArrayList<String> finallChubbyers =this.sortChubbyers(orderChubbyers);
+		System.out.println("最终接受到" + orderChubbyers.size() + "个线程结果");
+		// System.out.println("顺序：");
+		// for (OrderChubbyer<String> orderChubbyer : orderChubbyers) {
+		// System.out.println("Order:" + orderChubbyer.order);
+		// }
+		ArrayList<String> finallChubbyers = this.sortChubbyers(orderChubbyers);
 		return finallChubbyers;
 	}
 
@@ -157,42 +183,49 @@ public class Tasker implements Callable<Object> {
 					minIndex = j;
 				}
 			}
-			System.out.println("size:"+orderChubbyers.size());
-			System.out.println("minIndex:"+minIndex);
+			//System.out.println("size:" + orderChubbyers.size());
+			//System.out.println("minIndex:" + minIndex);
 			al.addAll(orderChubbyers.get(minIndex).chubbyers);
 			orderChubbyers.remove(minIndex);
 			minIndex = 0;
 		}
 		// 剩下的最后一个就是线程序号最大的那个
 		al.addAll(orderChubbyers.get(0).chubbyers);
-		//System.out.println(al.size());
+		// System.out.println(al.size());
 		return al;
 	}
 
 	public static void main(String[] args) {
-		Tasker tasker = new Tasker();
-//		ArrayList<String> chubbyers = tasker.getAllChubbyers("qq");
-//		System.out.println(chubbyers.size());
-//		for (String chubbyer : chubbyers) {
-//			System.out.println(chubbyer);
-//		}
-//int minIndex = 0;
-//		int size = orderChubbyers.size();
-//		for (int i = 0; i < size - 1; i++) {
-//			// 每一次找到线程池里线程序号最小的那个
-//			int minOrder = orderChubbyers.get(0).order;
-//			for (int j = 0; j < orderChubbyers.size(); j++) {
-//				if (orderChubbyers.get(j).order < minOrder) {
-//					minOrder = orderChubbyers.get(j).order;
-//					minIndex = j;
-//				}
-//			}
-//			al.addAll(orderChubbyers.get(minIndex).chubbyers);
-//			orderChubbyers.remove(minIndex);
-//			minIndex = 0;
-//		}
-//		// 剩下的最后一个就是线程序号最大的那个
-//		al.addAll(orderChubbyers.get(0).chubbyers);
-//		System.out.println(al.size());
+		Chubbyer chubbyer=new Chubbyer("AA", 2.8);
+		System.out.println("{\"name\":\""+chubbyer.day+"\",\"hours\":"+chubbyer.point+"}");
+//		ExecutorService executor = Executors.newCachedThreadPool();
+//		CompletionService<Object> comp = new ExecutorCompletionService<>(
+//				executor);
+//		Tasker taskE_302 = new Tasker("梁健",
+//				EC.E_302);
+//		comp.submit(taskE_302);
+		// ArrayList<String> chubbyers = tasker.getAllChubbyers("qq");
+		// System.out.println(chubbyers.size());
+		// for (String chubbyer : chubbyers) {
+		// System.out.println(chubbyer);
+		// }
+		// int minIndex = 0;
+		// int size = orderChubbyers.size();
+		// for (int i = 0; i < size - 1; i++) {
+		// // 每一次找到线程池里线程序号最小的那个
+		// int minOrder = orderChubbyers.get(0).order;
+		// for (int j = 0; j < orderChubbyers.size(); j++) {
+		// if (orderChubbyers.get(j).order < minOrder) {
+		// minOrder = orderChubbyers.get(j).order;
+		// minIndex = j;
+		// }
+		// }
+		// al.addAll(orderChubbyers.get(minIndex).chubbyers);
+		// orderChubbyers.remove(minIndex);
+		// minIndex = 0;
+		// }
+		// // 剩下的最后一个就是线程序号最大的那个
+		// al.addAll(orderChubbyers.get(0).chubbyers);
+		// System.out.println(al.size());
 	}
 }

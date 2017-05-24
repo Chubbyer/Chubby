@@ -54,8 +54,10 @@ public class SocketClient implements Callable<Object> {
 			ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
 			ArrayList<String> chubbyerString = (ArrayList<String>) this
 					.getOneOverview(serCondition);
-			//加工getOneOverview函数的结果，方便在页面上展示EC-301_1任务的结果,得到每天使用多少小时
+			// 加工getOneOverview函数的结果，方便在页面上展示EC-301_1任务的结果,得到每天使用多少小时
 			chubbyers = ChubbyerParser.getUseTime(chubbyerString);
+			chubbyers = ChubbyerParser.remoneRepChubbyers(chubbyers);
+			chubbyers = ChubbyerParser.supplementChubbyers(chubbyers);
 			System.out.println("SocketClient已返回数据");
 			return chubbyers;
 		}
@@ -69,7 +71,9 @@ public class SocketClient implements Callable<Object> {
 			ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
 			ArrayList<String> chubbyerString = (ArrayList<String>) this
 					.getOneOverview(serCondition);
-			chubbyers = this.getUseTimeScatter(chubbyerString);
+			// 加工getOneOverview函数的结果，方便在页面上展示EC-301_3任务的结果,得到开关机时间点
+			chubbyers = ChubbyerParser.getUseTimeScatter(chubbyerString);
+			chubbyers = ChubbyerParser.supplementChubbyers(chubbyers);
 			System.out.println("SocketClient已返回数据");
 			return chubbyers;
 		}
@@ -147,7 +151,6 @@ public class SocketClient implements Callable<Object> {
 		return null;
 	}
 
-
 	/*
 	 * 加工getOneOverview函数的结果，方便在页面上展示EC-301_2任务的结果,得到使用时间在一天中的分布
 	 */
@@ -155,35 +158,6 @@ public class SocketClient implements Callable<Object> {
 		return null;
 
 	}
-
-	/*
-	 * 加工getOneOverview函数的结果，方便在页面上展示EC-301_3任务的结果,得到开关机时间点
-	 */
-	public ArrayList<Chubbyer> getUseTimeScatter(
-			ArrayList<String> chubbyerString) {
-		ArrayList<Chubbyer> openChubbyers = new ArrayList<Chubbyer>();
-		ArrayList<Chubbyer> closeChubbyers = new ArrayList<Chubbyer>();
-		JSONObject jsonObj = null;
-		try {
-			for (int i = 0; i < chubbyerString.size(); i++) {
-				jsonObj = new JSONObject(chubbyerString.get(i));
-				openChubbyers.add(TimeParser.getTimeScatter(jsonObj
-						.getString("ot")));
-				closeChubbyers.add(TimeParser.getTimeScatter(jsonObj
-						.getString("ct")));
-				// System.out.println(chubbyerString.get(i));
-			}
-			openChubbyers.addAll(closeChubbyers);
-			return openChubbyers;
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			System.out.println("Client端的JSON解析出错");
-		}
-		return null;
-	}
-
-	
 
 	public static void main(String[] args) {
 		SocketClient sClient = new SocketClient();

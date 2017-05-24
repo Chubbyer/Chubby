@@ -65,7 +65,7 @@ public class SocketServer {
 				System.out.println("端口：" + this.port + " 收到：" + receiveData);
 				// 解析出客户端请求的类型
 				String oType = receiveData.toString().substring(0, 3);
-				System.out.println("客户端请求："+oType+"#操作");
+				System.out.println("客户端请求：" + oType + "#操作");
 				if (oType.equals(SC.CHECK_CONNECTION)) {
 					// 客户端请求连接，发送本服务器的状态
 					Net.sentData(accpetSocket, this.status);
@@ -73,27 +73,55 @@ public class SocketServer {
 				}
 				// 所有的任务都从这里转发
 				if (oType.equals(EC.E_301) && this.status.equals(SC.SERVER_OK)) {
-					
 					// 附加的数据，一般为姓名或学号或主机名
 					String additional = receiveData.toString().substring(3);
-					System.out.println("正在转发E_301("+additional+")任务···");
+					System.out.println("正在转发E_301(" + additional + ")任务···");
 					// 将本机的状态置为忙
 					if (--this.maxLinks == 0)
 						this.status = SC.SERVER_BUSY;
-					
 					// 启动EC.E_301所描述的任务
-					Tasker taskE_301 = new Tasker(accpetSocket,additional,EC.E_301);
+					Tasker taskE_301 = new Tasker(accpetSocket, additional,
+							EC.E_301);
 					comp.submit(taskE_301);
-					System.out.println("正在处理E_301("+additional+")任务···");
+					System.out.println("正在处理E_301(" + additional + ")任务···");
+				}
+				if (oType.equals(EC.E_302) && this.status.equals(SC.SERVER_OK)) {
+					// 附加的数据，这里应该是1或者2或者3
+					// 我们将所有的用户分成三部份，1、2、3表示要处理第几部分
+					String additional = receiveData.toString().substring(3);
+					int order = Integer.parseInt(additional);
+					System.out.println("正在转发E_302任务···");
+					if (--this.maxLinks == 0)
+						this.status = SC.SERVER_BUSY;// 将本机的状态置为忙
+					// 启动EC.E_302所描述的任务
+					TaskerPlus taskE_302 = new TaskerPlus(accpetSocket,
+							EC.E_302, order);
+					comp.submit(taskE_302);
+					System.out.println("正在处理E_302:(" + additional + ")任务···");
+				}
+				if (oType.equals(EC.E_303) && this.status.equals(SC.SERVER_OK)) {
+					// 几乎与302任务相同
+					// 附加的数据，这里应该是1或者2或者3
+					// 我们将所有的用户分成三部份，1、2、3表示要处理第几部分
+					String additional = receiveData.toString().substring(3);
+					int order = Integer.parseInt(additional);
+					System.out.println("正在转发E_303任务···");
+					if (--this.maxLinks == 0)
+						this.status = SC.SERVER_BUSY;// 将本机的状态置为忙
+					// 启动EC.E_302所描述的任务
+					TaskerPlus taskE_303 = new TaskerPlus(accpetSocket,
+							EC.E_303, order);
+					comp.submit(taskE_303);
+					System.out.println("正在处理E_303:(" + additional + ")任务···");
 				}
 				// 最后检查任务是否已执行完
-				int alreadyLinks=10-this.maxLinks;
+				int alreadyLinks = 10 - this.maxLinks;
 				for (int i = 0; i < alreadyLinks; i++) {
 					try {
 						// 检查任务线程是否执行完
 						Future<Object> future = comp.take();
 						boolean isComplet = (boolean) future.get();
-						if(isComplet==true)
+						if (isComplet == true)
 							this.maxLinks++;
 
 					} catch (InterruptedException | ExecutionException e) {
