@@ -73,7 +73,7 @@ public class SocketClient implements Callable<Object> {
 					.getOneOverview(serCondition);
 			// 加工getOneOverview函数的结果，方便在页面上展示EC-301_3任务的结果,得到开关机时间点
 			chubbyers = ChubbyerParser.getUseTimeScatter(chubbyerString);
-			chubbyers = ChubbyerParser.supplementChubbyers(chubbyers);
+			//chubbyers = ChubbyerParser.supplementChubbyers(chubbyers);
 			System.out.println("SocketClient已返回数据");
 			return chubbyers;
 		}
@@ -166,10 +166,18 @@ public class SocketClient implements Callable<Object> {
 		ArrayList<String> chubbyers = (ArrayList<String>) sClient
 				.getOneOverview("Leung");
 		System.out.println(chubbyers.size());
-		for (int i = 0; i < 50; i++) {
-			System.out.println(chubbyers.get(i));
+//		for (int i = 0; i < 50; i++) {
+//			System.out.println(chubbyers.get(i));
+//		}
+		ArrayList<Chubbyer> chubbyerList = new ArrayList<Chubbyer>();
+		// 得到每天的开关机时点
+		chubbyerList = ChubbyerParser.getUseTimeScatter(chubbyers);
+		for (int i = 0; i < chubbyerList.size()/2; i++) {
+			System.out.print("OP:"+chubbyerList.get(i).day+" ");
+			System.out.println(chubbyerList.get(i).point);
+			System.out.print("CP:"+chubbyerList.get(i+chubbyerList.size()/2).day+" ");
+			System.out.println(chubbyerList.get(i+chubbyerList.size()/2).point);
 		}
-
 		// System.out.println(sClient.getOneOverview("Leung"));
 
 	}

@@ -75,7 +75,7 @@ public class ChubbyerParser {
 	/*
 	 * 加工ArrayList<String> chubbyerString对象的结果
 	 * 这里的chubbyerString是关于诸如{"name":"梁健","hours":3.2}的列表
-	 * 方便在页面上展示EC-301_3任务的结果,得到开关机时间点
+	 * 方便在页面上展示EC-301_3任务的结果,得到开关机时间点,并按降序排序
 	 */
 	public static ArrayList<Chubbyer> sortChubbyersForRanking(
 			ArrayList<String> chubbyerString) {

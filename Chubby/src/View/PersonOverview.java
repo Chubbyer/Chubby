@@ -120,8 +120,7 @@ public class PersonOverview extends HttpServlet {
 				//把ArrayList转换成JSON
 				String jsonStr=null;
 				ArrayList<String> openPoints=new ArrayList<String>();
-				ArrayList<String> closePoints=new ArrayList<String>();
-			
+				ArrayList<String> closePoints=new ArrayList<String>();			
 				for (int i = 0; i <chubbyers.size(); i++) {
 					if(i<chubbyers.size()/2){
 						//前半部分的数据是开机的节点
@@ -145,7 +144,6 @@ public class PersonOverview extends HttpServlet {
 			}
 
 		}
-		//out.println("ssasad");
 		out.flush();
 		out.close();
 	}

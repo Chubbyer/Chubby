@@ -68,9 +68,7 @@ public class TimeParser {
 			date = formatter.parse(timeString);
 			timeLong = date.getTime() + 1000 * 60 * 60 * 8;// 调整时区，加8个小时
 			date = new Date(timeLong);
-			point = (date.getHours()*60+date.getMinutes())/60.0;// 以小时衡量的指标
-			
-			
+			point = (date.getHours()*60+date.getMinutes())/60.0;// 以小时衡量的指标						
 			// return sdf.format(date);
 			return new Chubbyer(sdf.format(date),
 					Math.round(point * 10) / 10.0);
