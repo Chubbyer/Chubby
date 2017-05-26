@@ -35,6 +35,7 @@ public class Overview extends HttpServlet {
 	/**
 	 * The doGet method of the servlet. <br>
 	 */
+	@SuppressWarnings("unused")
 	public void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
@@ -69,20 +70,25 @@ public class Overview extends HttpServlet {
 					e.printStackTrace();
 				}
 			}
-			// 按使用时间排序并加工成Chubbyer对象的列表
-			chubbyers = ChubbyerParser.sortChubbyersForRanking(chubbyerString);
-			// 把ArrayList转换成JSON
-			String jsonStr = null;
-			ArrayList<String> names = new ArrayList<String>();
-			ArrayList<Double> hours = new ArrayList<Double>();
-			for (Chubbyer chubbyer : chubbyers) {
-				names.add("\"" + chubbyer.day + "\"");
-				hours.add(chubbyer.point);
+			if (chubbyerString != null) {
+				// 按使用时间排序并加工成Chubbyer对象的列表
+				chubbyers = ChubbyerParser
+						.sortChubbyersForRanking(chubbyerString);
+				// 把ArrayList转换成JSON
+				String jsonStr = null;
+				ArrayList<String> names = new ArrayList<String>();
+				ArrayList<Double> hours = new ArrayList<Double>();
+				for (Chubbyer chubbyer : chubbyers) {
+					names.add("\"" + chubbyer.day + "\"");
+					hours.add(chubbyer.point);
+				}
+				jsonStr = "{" + "\"names\"" + ":" + names + "," + "\"hours\""
+						+ ":" + hours + "}";
+				// 向前端发送JSON串
+				out.println(jsonStr);
+			}else {
+				out.println("null");
 			}
-			jsonStr = "{" + "\"names\"" + ":" + names + "," + "\"hours\"" + ":"
-					+ hours + "}";
-			// 向前端发送JSON串
-			out.println(jsonStr);
 		}
 		// 获得所有同学的开关机时点
 		if (optType.equals(EC.E_303)) {

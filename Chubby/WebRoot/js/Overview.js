@@ -1,8 +1,88 @@
-function showChart3() {
-	var myChart3 = echarts.init(document.getElementById('myChart3'));
+function showRanking() {
+	var myChart = echarts.init(document.getElementById("ranking"));
+	// 显示标题，图例和空的坐标轴
+	myChart.setOption({
+		title : {
+			text : '日平均使用时间',
+			subtext : '数据来自于分布式PC日志处理系统Chubby'
+		},
+		tooltip : {
+			trigger : 'axis'
+		},
+		legend : {
+			data : [ '使用时间' ]
+		},
+		toolbox : {
+			show : true,
+			feature : {
+				mark : {
+					show : true
+				},
+				dataView : {
+					show : true,
+					readOnly : false
+				},
+				magicType : {
+					show : true,
+					type : [ 'line', 'bar' ]
+				},
+				restore : {
+					show : true
+				},
+				saveAsImage : {
+					show : true
+				}
+			}
+		},
+		calculable : true,
+		xAxis : [ {
+			type : 'value',
+			boundaryGap : [ 0, 0.01 ]
+		} ],
+		yAxis : [ {
+			type : 'category',
+			data : [ '梁健', '伍守增', '邬飞', '周宇', '张三', '李四' ]
+		} ],
+		series : [ {
+			name : '2011年',
+			type : 'bar',
+			data : [ 18203, 23489, 29034, 104970, 131744, 630230 ],
+			itemStyle : {
+				normal : {
+					color : 'rgba(0, 148, 219, 1)'
+				}
+			}
+		}, ]
+	});
+	// myChart.showLoading();
+	// // 异步加载数据
+	// $.get("Overview?oType=302").done(function(rpdata) {
+	// // alert(data);
+	// var JSONObject = eval("(" + rpdata + ")");
+	// var hours = [];
+	// hours = JSONObject.hours;
+	// var names = [];
+	// names = JSONObject.names;
+	// myChart.hideLoading();
+	// // 填入数据
+	// myChart.setOption({
+	// xAxis : {
+	// data : hours
+	// },
+	// series : [ {
+	// // 根据名字对应到相应的系列
+	// name : '使用时间',
+	// data : names
+	// } ]
+	// });
+	// });
+}
+function shouDistribut() {
+	var myChart = echarts.init(document.getElementById('distribut'));
 	var option = {
 		title : {
 			text : '开关机时点分布',
+			subtext : '数据来自于分布式PC日志处理系统Chubby'
 		},
 		legend : {
 			data : [ '开机', '关机' ]
@@ -45,7 +125,7 @@ function showChart3() {
 			data : [],
 			itemStyle : {
 				normal : {
-					color : 'rgba(35, 82, 108, 0.8)'
+					color : 'rgba(35, 82, 108, 0.3)'
 				}
 			}
 		}, {
@@ -54,14 +134,14 @@ function showChart3() {
 			data : [],
 			itemStyle : {
 				normal : {
-					color : 'rgba(22, 11, 125, 0.8)'
+					color : 'rgba(22, 11, 125, 0.3)'
 				}
 			}
 		} ]
 	};
-	myChart3.setOption(option);
-	myChart3.showLoading();
-	$.get("PersonOverview?oType=301_3").done(
+	myChart.setOption(option);
+	myChart.showLoading();
+	$.get("Overview?oType=303").done(
 			function(rpdata) {
 				var JSONObject = eval("(" + rpdata + ")");
 				var openPoints = [];
@@ -69,9 +149,9 @@ function showChart3() {
 				var closePoints = [];
 				openPoints = JSONObject.openPoints;
 				closePoints = JSONObject.closePoints;
-				myChart3.hideLoading();
+				myChart.hideLoading();
 				// 填入数据
-				myChart3.setOption({
+				myChart.setOption({
 					series : [
 							{
 								name : '开机',
@@ -142,113 +222,3 @@ function showChart3() {
 				});
 			});
 }
-
-function showChart2() {
-	var myChart2 = echarts.init(document.getElementById('myChart2'));
-	myChart2.setOption({
-		title : {
-			text : '一天中PC使用时间分布'
-		},
-		series : [ {
-			name : '访问来源',
-			type : 'pie',
-			radius : '55%',
-			roseType : 'angle',
-			data : []
-		} ]
-	})
-	myChart2.showLoading();
-	$.get("PersonOverview?oType=301_2").done(function(rpdata) {
-		var JSONObject = eval("(" + rpdata + ")");
-		var myData = [ {
-			value : JSONObject.morning,
-			name : '上午（6:00-12:00）'
-		}, {
-			value : JSONObject.afternoon,
-			name : '下午（12:00-19:00）'
-		}, {
-			value : JSONObject.evening,
-			name : '晚上（19:00以后）'
-		} ];
-		myChart2.hideLoading();
-		myChart2.setOption({
-			series : [ {
-				data : myData
-			} ]
-		})
-		showChart3();
-	});
-}
-
-function showChart1() {
-	var myChart1 = echarts.init(document.getElementById("myChart1"));
-	// 显示标题，图例和空的坐标轴
-	myChart1.setOption({
-		title : {
-			text : '异步数据加载示例'
-		},
-		tooltip : {
-			trigger : 'axis',
-			axisPointer : {
-				type : 'cross'
-			}
-		},
-		legend : {
-			data : [ '使用时间' ]
-		},
-		toolbox : {
-			show : true,
-			feature : {
-				magicType : {
-					type : [ 'line', 'bar' ]
-				},
-				saveAsImage : {}
-			}
-		},
-		xAxis : {
-			type : 'category',
-			data : [],
-			name : '日期'
-		},
-		yAxis : {
-			type : 'value',
-			axisLabel : {
-				formatter : '{value} H'
-			}
-		},
-		dataZoom : [ {
-			type : 'slider',
-			start : 60,
-			end : 100
-		} ],
-		series : [ {
-			name : '使用时间',
-			type : 'bar',
-			data : []
-		} ]
-	});
-	myChart1.showLoading();
-	// 异步加载数据
-	$.get("PersonOverview?oType=301_1").done(function(rpdata) {
-		// alert(data);
-		var JSONObject = eval("(" + rpdata + ")");
-		var days = [];
-		days = JSONObject.days;
-		var points = [];
-		points = JSONObject.points;
-		myChart1.hideLoading();
-		// 填入数据
-		myChart1.setOption({
-			xAxis : {
-				data : days
-			},
-			series : [ {
-				// 根据名字对应到相应的系列
-				name : '使用时间',
-				data : points
-			} ]
-		});
-		showChart2();
-	});
-}
-

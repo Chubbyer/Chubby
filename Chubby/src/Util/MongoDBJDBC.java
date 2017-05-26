@@ -217,6 +217,26 @@ public class MongoDBJDBC {
 	}
 
 	/*
+	 * 插入某位同学的配置信息
+	 */
+	public void insertUser(int i, String name, String sno, String sys,
+			String host, Double logLines, boolean flag, boolean r_Flag,
+			String open_Id, String close_Id) {
+		// ({i:1,Name:"梁健",Sno:"631406010412",Sys:"Windows10",Host:"Leung",
+		// LogLines:10000,Flag:0,R_Flag:0,Open_Id:"4798",Close_Id:"4647"})
+		if (this.mongoClient != null) {
+			Document document = new Document("i", i).append("Name", name)
+					.append("Sno", sno).append("Sys", sys).append("Host", host)
+					.append("LogLines", logLines).append("Flag", flag)
+					.append("R_Flag", r_Flag).append("Open_Id", open_Id)
+					.append("Close_Id", close_Id);
+			MongoCollection<Document> collection = this.mongoClient
+					.getDatabase("User").getCollection("Info");
+			collection.insertOne(document);
+		}
+	}
+
+	/*
 	 * 将我们分析的结果（所有的）一次性写入以R_打头的集合中
 	 */
 	public void insertChubbyers(String host, ArrayList<String> cbs) {
@@ -234,7 +254,6 @@ public class MongoDBJDBC {
 			collection.updateOne(eq("Host", host), set("R_Flag", true));
 			this.closeMongoDB();
 		}
-
 	}
 
 	/*
@@ -253,14 +272,14 @@ public class MongoDBJDBC {
 				while (cursor.hasNext()) {
 					String chubbyer = JSONParser.getChubbyerFromJSON(cursor
 							.next().toJson());
-					System.out.println(chubbyer);
-					if (chubbyer.equals(null))
+					//System.out.println("MG:"+chubbyer);
+					if (chubbyer!=null)
 						chubbyers.add(chubbyer);
-
 				}
 			} finally {
 				cursor.close();
 				this.closeMongoDB();
+				return chubbyers;
 			}
 		} catch (Exception e) {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());

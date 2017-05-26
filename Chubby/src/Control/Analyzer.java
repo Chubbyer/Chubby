@@ -41,8 +41,7 @@ public class Analyzer implements Callable<Object> {
 			//System.out.println("Thread:" + threadNum);
 			ArrayList<String> chubbyers = this.getChubbyers(user.getHost(),
 					threadNum);
-			// Thread.sleep(2000);
-			
+			// Thread.sleep(2000);			
 			OrderChubbyer<String> orderChubbyer = new OrderChubbyer<String>(
 					threadNum, chubbyers);
 			return orderChubbyer;
@@ -51,7 +50,9 @@ public class Analyzer implements Callable<Object> {
 	}
 
 	/*
+	 * @Leung
 	 * 从数据库给定数量Event中分析所有的Chubbyer
+	 * 整个系统的核心所在
 	 */
 	public ArrayList<String> getChubbyers(String hostName, int threadNum) {
 		MongoDBJDBC mongoer = new MongoDBJDBC(hostName);

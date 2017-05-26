@@ -132,7 +132,8 @@ public class ClientTasker implements Callable<Object> {
 
 	/*
 	 * 根据EC-303的约定，获得所有人的开关几时间节点， 接受到的数据是例如
-	 * {"openPoints":[['2017/05/11',11.2],['2017/05/11',11.2]],"closePoints":[['2017/05/11',12.2],['2017/05/11',13.2]]}类型的列表
+	 * 前半部分表示的是开机时间节点，后半部分是关机
+	 * [['2017/05/11',11.2],['2017/05/11',11.2]],[['2017/05/11',12.2],['2017/05/11',13.2]]类型的列表
 	 */ 
 	@SuppressWarnings("unchecked")
 	public ArrayList<String> getUserScatters(){

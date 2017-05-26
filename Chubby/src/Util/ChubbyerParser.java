@@ -23,8 +23,10 @@ public class ChubbyerParser {
 	 */
 	public static ArrayList<Chubbyer> getUseTime(
 			ArrayList<String> chubbyerString) {
+		if(chubbyerString==null)
+			return null;
 		ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
-		System.out.println(chubbyerString.size());
+		//System.out.println(chubbyerString.size());
 		JSONObject jsonObj = null;
 		try {
 			for (int i = 0; i < chubbyerString.size(); i++) {
@@ -50,6 +52,8 @@ public class ChubbyerParser {
 	 */
 	public static ArrayList<Chubbyer> getUseTimeScatter(
 			ArrayList<String> chubbyerString) {
+		if(chubbyerString==null)
+			return null;
 		ArrayList<Chubbyer> openChubbyers = new ArrayList<Chubbyer>();
 		ArrayList<Chubbyer> closeChubbyers = new ArrayList<Chubbyer>();
 		JSONObject jsonObj = null;
@@ -75,12 +79,43 @@ public class ChubbyerParser {
 	/*
 	 * 加工ArrayList<String> chubbyerString对象的结果
 	 * 这里的chubbyerString是关于诸如{"name":"梁健","hours":3.2}的列表
-	 * 方便在页面上展示EC-301_3任务的结果,得到开关机时间点,并按降序排序
+	 * 方便在页面上展示EC-301_3任务的结果,得到开关机时间点,并按升序排序
 	 */
 	public static ArrayList<Chubbyer> sortChubbyersForRanking(
 			ArrayList<String> chubbyerString) {
+		if (chubbyerString != null) {
+			try {
+				JSONObject jsonObj = null;
+				ArrayList<Chubbyer> chubbyers=new ArrayList<Chubbyer>();
+				for (int i = 0; i < chubbyerString.size(); i++) {
+					jsonObj = new JSONObject(chubbyerString.get(i));
+					chubbyers.add(new Chubbyer(jsonObj.getString("name"), jsonObj.getDouble("hours")));
+				}
+				ArrayList<Chubbyer> finallChubbyers=new ArrayList<Chubbyer>();
+				int minIndex = 0;
+				int size = chubbyers.size();
+				for (int i = 0; i < size - 1; i++) {
+					// 每一次找到列表中Point最小的那个
+					double minPoint = chubbyers.get(0).point;
+					for (int j = 0; j < chubbyers.size(); j++) {
+						if (chubbyers.get(j).point < minPoint) {
+							minPoint = chubbyers.get(j).point;
+							minIndex = j;
+						}
+					}
+					finallChubbyers.add(chubbyers.get(minIndex));
+					chubbyers.remove(minIndex);
+					minIndex = 0;
+				}
+				// 剩下的最后一个就是Piont最大的那个
+				finallChubbyers.add(chubbyers.get(0));
+				return finallChubbyers;
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		return null;
-
 	}
 
 	/*
@@ -88,7 +123,10 @@ public class ChubbyerParser {
 	 * 这里的chubbyerString是关于诸如{"ot":"2017-05-12 12:11:10"
 	 * ,"ct":"2017-05-12 12:11:10"}的列表,得到使用时间在一天中的分布
 	 */
-	public static ArrayList<Double> getUseHoursDistribut(ArrayList<String> chubbyerString) {
+	public static ArrayList<Double> getUseHoursDistribut(
+			ArrayList<String> chubbyerString) {
+		if(chubbyerString==null)
+			return null;
 		try {
 			double[] temp;
 			double morning = 0, aftermoon = 0, evening = 0;
@@ -132,14 +170,14 @@ public class ChubbyerParser {
 			morning = Math.round(morning * 10) / 10.0;
 			aftermoon = Math.round(aftermoon * 10) / 10.0;
 			evening = Math.round(evening * 10) / 10.0;
-			System.out.println("M:" + morning);
-			System.out.println("A:" + aftermoon);
-			System.out.println("E:" + evening);
-			ArrayList<Double> ret=new ArrayList<Double>();
+//			System.out.println("M:" + morning);
+//			System.out.println("A:" + aftermoon);
+//			System.out.println("E:" + evening);
+			ArrayList<Double> ret = new ArrayList<Double>();
 			ret.add(morning);
 			ret.add(aftermoon);
 			ret.add(evening);
-			System.out.println("CP:" + ret);
+//			System.out.println("CP:" + ret);
 			return ret;
 		} catch (JSONException | ParseException e) {
 			// TODO Auto-generated catch block
@@ -214,6 +252,8 @@ public class ChubbyerParser {
 	 */
 	public static ArrayList<Chubbyer> supplementChubbyers(
 			ArrayList<Chubbyer> chubbyers) {
+		if(chubbyers==null)
+			return null;
 		ArrayList<Chubbyer> finalChubbyers = new ArrayList<Chubbyer>();
 		DateFormat df = new SimpleDateFormat("yyyy/MM/dd");
 		long longTime1, longTime2;
@@ -253,6 +293,8 @@ public class ChubbyerParser {
 	 */
 	public static ArrayList<Chubbyer> remoneRepChubbyers(
 			ArrayList<Chubbyer> chubbyers) {
+		if (chubbyers==null)
+			return null;
 		ArrayList<Chubbyer> finalChubbyers1 = new ArrayList<Chubbyer>();
 		DateFormat df = new SimpleDateFormat("yyyy/MM/dd");
 		long longTime1, longTime2;
@@ -289,16 +331,28 @@ public class ChubbyerParser {
 	}
 
 	public static void main(String[] args) {
-		double[] d = ChubbyerParser.getDayHoursDistribut(0, 24);
+//		double[] d = ChubbyerParser.getDayHoursDistribut(0, 24);
 		// System.out.println("M:" + d[0]);
 		// System.out.println("A:" + d[1]);
 		// System.out.println("E:" + d[2]);
-		String string = "{\"ot\":\"2017-05-10 21:11:10\",\"ct\":\"2017-05-12 12:11:10\"}";
-		ArrayList<String> al = new ArrayList<String>();
-		al.add(string);
-		d = ChubbyerParser.getUseHoursDistribut(al);
-		System.out.println("M:" + d[0]);
-		System.out.println("A:" + d[1]);
-		System.out.println("E:" + d[2]);
+//		String string = "{\"ot\":\"2017-05-10 21:11:10\",\"ct\":\"2017-05-12 12:11:10\"}";
+//		ArrayList<String> al = new ArrayList<String>();
+//		al.add(string);
+//		d = ChubbyerParser.getUseHoursDistribut(al);
+//		System.out.println("M:" + d[0]);
+//		System.out.println("A:" + d[1]);
+//		System.out.println("E:" + d[2]);
+		String string1="{\"name\":\"梁健\",\"hours\":3.2}";
+		String string2="{\"name\":\"Leung\",\"hours\":2.2}";
+		String string3="{\"name\":\"梁健\",\"hours\":4.2}";
+		ArrayList<String> al=new ArrayList<String>();
+		al.add(string1);
+		al.add(string2);
+		al.add(string3);
+		ArrayList<Chubbyer> chubbyers=new ArrayList<Chubbyer>();
+		chubbyers=ChubbyerParser.sortChubbyersForRanking(al);
+		for (Chubbyer chubbyer : chubbyers) {
+			System.out.println("Name:"+chubbyer.day+" Hours:"+chubbyer.point);
+		}
 	}
 }

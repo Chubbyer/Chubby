@@ -59,6 +59,7 @@ public class SAXParser {
 			//更新User的信息
 			MongoDBJDBC mongoer=new MongoDBJDBC("User");
 			mongoer.updateUserInfo(host, "Flag", true);
+			mongoer.updateUserInfo(host, "LogLines", lines);
 		}
 
 		/**
@@ -72,9 +73,6 @@ public class SAXParser {
 			if (qName.equals("TimeCreated")) {
 				this.event.setTimeCreated(TimeParser.getTimeStr(atts
 						.getValue(0)));
-				// System.out.println(this.event.getI());
-				// System.out.println(this.event.getEventID());
-				// System.out.println(this.event.getTimeCreated());
 				mongoer.insertEvent(fileName, this.event);
 			}
 			this.tagName = qName;
@@ -131,7 +129,6 @@ public class SAXParser {
 		}finally{
 			//.closeMongoDB();
 		}
-
 	}
 
 	public static void main(String[] args) throws SAXException, IOException {

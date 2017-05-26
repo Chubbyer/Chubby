@@ -59,25 +59,32 @@ public class PersonOverview extends HttpServlet {
 				ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
 				ArrayList<String> chubbyerStrings = (ArrayList<String>) future
 						.get();
-				request.getSession().setAttribute("chubbyerStrings",
-						chubbyerStrings);
-				// 加工getOneOverview函数的结果，方便在页面上展示EC-301_1任务的结果,得到每天使用多少小时
-				chubbyers = ChubbyerParser.getUseTime(chubbyerStrings);
-				chubbyers = ChubbyerParser.remoneRepChubbyers(chubbyers);
-				chubbyers = ChubbyerParser.supplementChubbyers(chubbyers);
-				// 把ArrayList转换成JSON
-				String jsonStr = null;
-				ArrayList<String> days = new ArrayList<String>();
-				ArrayList<Double> points = new ArrayList<Double>();
-				for (Chubbyer chubbyer : chubbyers) {
-					days.add("\"" + chubbyer.day + "\"");
-					points.add(chubbyer.point);
+				// chubbyerStrings是三个图表的数据基础
+				if (chubbyerStrings != null) {
+					request.getSession().setAttribute("chubbyerStrings",
+							chubbyerStrings);
+					// 加工getOneOverview函数的结果，方便在页面上展示EC-301_1任务的结果,得到每天使用多少小时
+
+					chubbyers = ChubbyerParser.getUseTime(chubbyerStrings);
+					chubbyers = ChubbyerParser.remoneRepChubbyers(chubbyers);
+					chubbyers = ChubbyerParser.supplementChubbyers(chubbyers);
+					// 把ArrayList转换成JSON
+					String jsonStr = null;
+					ArrayList<String> days = new ArrayList<String>();
+					ArrayList<Double> points = new ArrayList<Double>();
+					for (Chubbyer chubbyer : chubbyers) {
+						days.add("\"" + chubbyer.day + "\"");
+						points.add(chubbyer.point);
+					}
+					jsonStr = "{" + "\"days\"" + ":" + days + ","
+							+ "\"points\"" + ":" + points + "}";
+					// 向前端发送JSON串
+					out.println(jsonStr);
+					System.out.println(optType + "处理完毕");
+				}else {
+					out.println("");
+					System.out.println(optType + "未获得数据");
 				}
-				jsonStr = "{" + "\"days\"" + ":" + days + "," + "\"points\""
-						+ ":" + points + "}";
-				// 向前端发送JSON串
-				out.println(jsonStr);
-				System.out.println(optType+"处理完毕"  );
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -104,13 +111,13 @@ public class PersonOverview extends HttpServlet {
 						+ "\"afternoon\":" + timeDistribut.get(1) + ","
 						+ "\"evening\":" + timeDistribut.get(2) + "}";
 				// 向前端发送JSON串
-				//System.out.println(timeDistribut);
+				// System.out.println(timeDistribut);
 				out.println(jsonStr);
-				System.out.println(optType+"处理完毕");
+				System.out.println(optType + "处理完毕");
 			} catch (NullPointerException e) {
 				// TODO: handle exception
-				//当session为空的时候
-				String result=this.handEC_301_2(serCnondition, comp);
+				// 当session为空的时候
+				String result = this.handEC_301_2(serCnondition, comp);
 				out.println(result);
 			}
 		}
@@ -118,7 +125,7 @@ public class PersonOverview extends HttpServlet {
 			// 处理EC.E_301_3,数据应该展示在第3个图表中（散点图）
 			System.out.println("正在处理" + optType);
 			String serCnondition = (String) request.getSession().getAttribute(
-					"serachCondition");			
+					"serachCondition");
 			try {
 				ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
 				@SuppressWarnings("unchecked")
@@ -144,15 +151,14 @@ public class PersonOverview extends HttpServlet {
 						+ "\"closePoints\"" + ":" + closePoints + "}";
 				// 向前端发送JSON串
 				out.println(jsonStr);
-				System.out.println(optType+"处理完毕" );
-				//System.out.println(jsonStr);
+				System.out.println(optType + "处理完毕");
+				// System.out.println(jsonStr);
 			} catch (NullPointerException e) {
 				// TODO Auto-generated catch block
-				//当session为空的时候
-				String result=this.handEC_301_3(serCnondition, comp);
+				// 当session为空的时候
+				String result = this.handEC_301_3(serCnondition, comp);
 				out.println(result);
 			}
-
 		}
 		out.flush();
 		out.close();
@@ -197,7 +203,7 @@ public class PersonOverview extends HttpServlet {
 					+ "\"afternoon\":" + timeDistribut.get(1) + ","
 					+ "\"evening\":" + timeDistribut.get(2) + "}";
 			// 向前端发送JSON串
-			//System.out.println(timeDistribut);
+			// System.out.println(timeDistribut);
 			System.out.println("EC_301_2重新处理完毕");
 			return jsonStr;
 		} catch (InterruptedException e) {
@@ -207,14 +213,14 @@ public class PersonOverview extends HttpServlet {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			System.out.println("EC.E_301_2任务结果转换出错");
-		} 
+		}
 		return null;
 	}
 
 	/*
 	 * 重新处理任务
 	 */
-	public String handEC_301_3(String ser, CompletionService<Object> comp){
+	public String handEC_301_3(String ser, CompletionService<Object> comp) {
 		System.out.println("正在重新处理EC_301_3");
 		String serCnondition = ser;
 		SocketClient client = new SocketClient(serCnondition, EC.E_301_3);
@@ -223,8 +229,7 @@ public class PersonOverview extends HttpServlet {
 		try {
 			future = comp.take();
 			@SuppressWarnings("unchecked")
-			ArrayList<Chubbyer> chubbyers = (ArrayList<Chubbyer>) future
-					.get();
+			ArrayList<Chubbyer> chubbyers = (ArrayList<Chubbyer>) future.get();
 			// 把ArrayList转换成JSON
 			String jsonStr = null;
 			ArrayList<String> openPoints = new ArrayList<String>();

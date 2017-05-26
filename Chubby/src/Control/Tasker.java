@@ -19,6 +19,10 @@ import Util.MongoDBJDBC;
 import Util.Net;
 import Util.SAXParser;
 
+/*
+ * @Leung
+ * 数据服务器端的任务处理器
+ */
 public class Tasker implements Callable<Object> {
 
 	private String userId;
@@ -47,9 +51,13 @@ public class Tasker implements Callable<Object> {
 		MongoDBJDBC mongoer = new MongoDBJDBC("User");
 		// 到User信息库当中去找能匹配userId的User
 		User user = mongoer.findUserInfo(userId);
+		if (user == null) {
+			System.out.println("在本地未找到" + userId + "用户");
+			return true;// 线程任务结束
+		}
 		ArrayList<String> chubbyers = this.getAllChubbyers(user);
 		ArrayList<String> finalChubbyers = new ArrayList<String>();
-		// 调整时间顺序
+		// 调整时间顺序，改为从以前到现在
 		for (int i = chubbyers.size(); i > 0; i--) {
 			finalChubbyers.add(chubbyers.get(i - 1));
 		}
@@ -59,10 +67,7 @@ public class Tasker implements Callable<Object> {
 			System.out.println("E_301任务已处理完毕，正在发送···");
 			if (Net.sentData(socket, finalChubbyers))
 				// System.out.println(finalChubbyers.size());
-				System.out.println("E_301已发送成功");
-			// 把finalChubbyers写入R_集合
-			// mongoer=new MongoDBJDBC(user.getHost());
-			// mongoer.insertChubbyers(user.getHost(), finalChubbyers);
+				System.out.println("E_301已发送成功"+chubbyers.size()+"条记录");
 			return true;
 		}
 		if (eType.equals(EC.E_302)) {
@@ -77,10 +82,10 @@ public class Tasker implements Callable<Object> {
 			for (int i = 0; i < chubbyerList.size(); i++) {
 				average += chubbyerList.get(i).point;
 			}
-			//System.out.println("Sum:"+average+" days:"+chubbyerList.size());
+			// System.out.println("Sum:"+average+" days:"+chubbyerList.size());
 			average = Math.round(average / chubbyerList.size() * 10) / 10.0;
 			Chubbyer userEC_302 = new Chubbyer(userId, average);
-			//System.out.println(userEC_302.point);
+			// System.out.println(userEC_302.point);
 			return userEC_302;
 		}
 		if (eType.equals(EC.E_303)) {
@@ -106,17 +111,14 @@ public class Tasker implements Callable<Object> {
 		ExecutorService executor = Executors.newCachedThreadPool();
 		CompletionService<Object> comp = new ExecutorCompletionService<>(
 				executor);
-
 		MongoDBJDBC mongoer;
 		if (user.getR_Flag()) {
 			// 直接从前缀为R_的集合中提取数据加工发给客户端,这里涉及的数据量比较小
 			mongoer = new MongoDBJDBC(user.getHost());// 传入user的主机名
 			chubbyers = mongoer.findAllChubbyers(user.getHost());
-
 		} else if (user.getFlag()) {
 			// 从原始的数据库集合总分析出结果发送给客户端,这里涉及的数据量比较大
 			chubbyers = this.getChubbyers(user, comp);
-
 		} else {
 			// 从原始的文件开始分析,这里涉及的数据量比较大
 			// 先将文件读入数据库
@@ -163,6 +165,10 @@ public class Tasker implements Callable<Object> {
 		// System.out.println("Order:" + orderChubbyer.order);
 		// }
 		ArrayList<String> finallChubbyers = this.sortChubbyers(orderChubbyers);
+		// 把finalChubbyers写入R_集合
+		MongoDBJDBC mongoer = new MongoDBJDBC("User");
+		mongoer = new MongoDBJDBC(user.getHost());
+		mongoer.insertChubbyers(user.getHost(), finallChubbyers);
 		return finallChubbyers;
 	}
 
@@ -183,8 +189,8 @@ public class Tasker implements Callable<Object> {
 					minIndex = j;
 				}
 			}
-			//System.out.println("size:" + orderChubbyers.size());
-			//System.out.println("minIndex:" + minIndex);
+			// System.out.println("size:" + orderChubbyers.size());
+			// System.out.println("minIndex:" + minIndex);
 			al.addAll(orderChubbyers.get(minIndex).chubbyers);
 			orderChubbyers.remove(minIndex);
 			minIndex = 0;
@@ -196,14 +202,15 @@ public class Tasker implements Callable<Object> {
 	}
 
 	public static void main(String[] args) {
-		Chubbyer chubbyer=new Chubbyer("AA", 2.8);
-		System.out.println("{\"name\":\""+chubbyer.day+"\",\"hours\":"+chubbyer.point+"}");
-//		ExecutorService executor = Executors.newCachedThreadPool();
-//		CompletionService<Object> comp = new ExecutorCompletionService<>(
-//				executor);
-//		Tasker taskE_302 = new Tasker("梁健",
-//				EC.E_302);
-//		comp.submit(taskE_302);
+		Chubbyer chubbyer = new Chubbyer("AA", 2.8);
+		System.out.println("{\"name\":\"" + chubbyer.day + "\",\"hours\":"
+				+ chubbyer.point + "}");
+		// ExecutorService executor = Executors.newCachedThreadPool();
+		// CompletionService<Object> comp = new ExecutorCompletionService<>(
+		// executor);
+		// Tasker taskE_302 = new Tasker("梁健",
+		// EC.E_302);
+		// comp.submit(taskE_302);
 		// ArrayList<String> chubbyers = tasker.getAllChubbyers("qq");
 		// System.out.println(chubbyers.size());
 		// for (String chubbyer : chubbyers) {

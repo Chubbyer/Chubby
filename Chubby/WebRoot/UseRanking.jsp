@@ -11,7 +11,7 @@
 <head>
 <base href="<%=basePath%>">
 
-<title>PC使用报告</title>
+<title>使用时间排行榜</title>
 
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="cache-control" content="no-cache">
@@ -30,14 +30,11 @@
 <script src="./js/bootstrap.min.js"></script>
 <link rel="stylesheet" type="text/css" href="css/PersonCSS.css">
 <script src="js/echarts.common.min.js"></script>
-<script src="js/PersonShow.js"></script>
+<script src="js/Overview.js"></script>
 <script type="text/javascript">
-	$(document).ready(
-			function() {
-				showChart1();
-				//showChart2();
-				//showChart3();
-			});
+	$(document).ready(function() {
+		showRanking();;
+	});
 </script>
 </head>
 <body>
@@ -48,9 +45,10 @@
 					style="margin-top:50px;color:#e0e0e0">
 					<blockquote>
 						<p id="heardtitle">
-							欢迎您Leung，我们已根据您的PC日志，得出了这份报告,它可能<br>有助于你了解自己的使用习惯
+							欢迎您，我们已根据所有同学的PC日志，分析得出了这份平均每天使用时间排行榜,在这里你可以看到你的排名
 						</p>
-						<footer>Info from <cite title="Source Title">Chubbyer Team</cite></footer>
+						<footer>Info from <cite title="Source Title">Chubbyer
+							Team</cite></footer>
 					</blockquote>
 				</div>
 			</div>
@@ -58,19 +56,21 @@
 		<div class="row">
 			<br>
 			<div class="row">
-				<div class="col-md-6 col-md-offset-2">
+				<div class="col-md-7 col-md-offset-2">
 					<dl class="descreption">
 						<dt>
-							<span class="glyphicon glyphicon-th-large" aria-hidden="true"></span>&nbsp每一天累计使用的时间
+							<span class="glyphicon glyphicon-th-large" aria-hidden="true"></span>&nbsp日平均使用时间排行榜
 						</dt>
-						<dd>这是根据您每天的开关机时间计算得出的，并且预计了您未来一周可能使用的时间。您还可以根据榜单右上角的按钮查看数据视图、折线图，并且可以保存为图片， 有任何疑问您还可以联系<a rel="license"
-								href="http://www.cqjtu.edu.cn" target="_blank">Chubbyer</a>团队。</dd>
+						<dd>
+							这是根据所有同学每天的开关机时间计算得出的，按平均使用时间从大到小排列，您还可以根据榜单右上角的按钮查看数据视图、折线图，并且可以保存为图片， 有任何疑问您还可以联系<a rel="license"
+								href="http://www.cqjtu.edu.cn" target="_blank">Chubbyer</a>团队。
+						</dd>
 					</dl>
 				</div>
 			</div>
 			<div class="row">
-				<div class="col-md-6 col-md-offset-3" id="myChart1"
-					style="height:400px;"></div>
+				<div class="col-md-6 col-md-offset-3" id="ranking"
+					style="height:800px;"></div>
 			</div>
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3">
@@ -79,55 +79,7 @@
 					</center>
 				</div>
 			</div>
-		</div>
-		<div class="row">
-			<br>
-			<div class="row">
-				<div class="col-md-6 col-md-offset-2">
-					<dl class="descreption">
-						<dt>
-							<span class="glyphicon glyphicon-th-large" aria-hidden="true"></span>&nbsp使用时间在一天中的分布
-						</dt>
-						<dd>这包括你在上午（6:00-12:00），下午（12:00-19:00），晚上（19:00以后）使用时间的分布</dd>
-					</dl>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-md-6 col-md-offset-3" id="myChart2"
-					style="height:400px;"></div>
-			</div>
-			<div class="row">
-				<div class="col-md-6 col-md-offset-3">
-					<center>
-						<p>共计使用500小时，如果你是博尔特，用这些时间你可以奔跑5000KM，相当于绕赤道3圈</p>
-					</center>
-				</div>
-			</div>
-		</div>
-		<div class="row">
-			<br>
-			<div class="row">
-				<div class="col-md-6 col-md-offset-2">
-					<dl class="descreption">
-						<dt>
-							<span class="glyphicon glyphicon-th-large" aria-hidden="true"></span>&nbsp开关机时间的分布
-						</dt>
-						<dd>在这里你可以看到具体的开关机的时点</dd>
-					</dl>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-md-6 col-md-offset-3" id="myChart3"
-					style="height:400px;"></div>
-			</div>
-			<div class="row">
-				<div class="col-md-6 col-md-offset-3">
-					<center>
-						<p>共计使用500小时，如果你是博尔特，用这些时间你可以奔跑5000KM，相当于绕赤道3圈</p>
-					</center>
-				</div>
-			</div>
-		</div>
+		</div>	
 	</div>
 	<div>
 		<footer class="bs-docs-footer">
@@ -137,7 +89,6 @@
 				<li><a href="https://github.com/Chubbyer/Chubby">GitHub 仓库</a></li>
 				<li><a href="../about/">关于</a></li>
 			</ul>
-
 			<p>
 				Designed and built with all the love in the world by <a href=""
 					target="_blank">@LeungJain</a> and <a href="" target="_blank">@WuFei</a>,<a
@@ -145,12 +96,10 @@
 				Maintained by the <a href="">core team</a> with the help of <a
 					href="">our Teacher Mr.Lou</a>.
 			</p>
-
 			<p>
 				感谢 <a rel="license" href="http://www.cqjtu.edu.cn" target="_blank">重庆交通大学</a>信息科学与工程学院计科4班所有同学提供的数据，本项目的所有实验数据可以在<a
 					rel="license" href="https://" target="_blank">https://</a> 浏览。本系统所涉及的数据未经日志文件提供者本人授权不得私自在互联网上传播，非法转载致使文件提供者相关权益受到伤害，本项目组摡不负责。
 			</p>
-
 		</div>
 		</footer>
 	</div>
