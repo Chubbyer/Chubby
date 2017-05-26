@@ -62,10 +62,10 @@ public class MongoDBJDBC {
 			// 连接到数据库并创建集合
 			this.mongoClient.getDatabase(dbName).createCollection(colleName);
 			this.writeLog("创建了集合" + colleName);
+			this.closeMongoDB();
 		} else {
 			System.out.println("MongoDB服务未打开");
 		}
-		this.closeMongoDB();
 	}
 
 	// 写操作日志到MongoDB数据库的myLogs集合中
@@ -102,28 +102,28 @@ public class MongoDBJDBC {
 
 	// 查找某个集合的全部文档
 	public void findAll(String colleName) {
-		this.connectionMongoDB();
 		try {
-			MongoCollection<Document> collection = this.mongoClient
-					.getDatabase(dbName).getCollection(colleName);
-			// 检索所有文档
-			/**
-			 * 1. 获取迭代器FindIterable<Document> 2. 获取游标MongoCursor<Document> 3.
-			 * 通过游标遍历检索出的文档集合
-			 * */
-			// FindIterable<Document> findIterable = collection.find();
-			// MongoCursor<Document> mongoCursor = findIterable.iterator();
-			MongoCursor<Document> cursor = collection.find().iterator();
-			try {
-				while (cursor.hasNext()) {
-					System.out.println(cursor.next().toJson());
+			if (this.connectionMongoDB()) {
+				MongoCollection<Document> collection = this.mongoClient
+						.getDatabase(dbName).getCollection(colleName);
+				// 检索所有文档
+				/**
+				 * 1. 获取迭代器FindIterable<Document> 2. 获取游标MongoCursor<Document>
+				 * 3. 通过游标遍历检索出的文档集合
+				 * */
+				MongoCursor<Document> cursor = collection.find().iterator();
+				try {
+					while (cursor.hasNext()) {
+						System.out.println(cursor.next().toJson());
+					}
+				} finally {
+					cursor.close();
+					this.closeMongoDB();
 				}
-			} finally {
-				cursor.close();
-				this.closeMongoDB();
 			}
 		} catch (Exception e) {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			this.closeMongoDB();
 		}
 	}
 
@@ -174,11 +174,13 @@ public class MongoDBJDBC {
 		}
 		return null;
 	}
+
 	/*
 	 * 查找某部分同学关于他们的文件信息
 	 */
-	public ArrayList<User> findUsersInfo(int startIndex,int endIndex) {
-		// MongoDBJDBC.connectionMongoDB();//这个方法比较特殊，在调用出统一连接，统一关闭
+	@SuppressWarnings("unconnectionMongoDB")
+	public ArrayList<User> findUsersInfo(int startIndex, int endIndex) {
+		// this.connectionMongoDB();//这个方法比较特殊，在调用出统一连接，统一关闭
 		try {
 			final ArrayList<User> users = new ArrayList<User>();
 			MongoCollection<Document> collection = this.mongoClient

@@ -34,14 +34,9 @@
 <script type="text/javascript">
 	$(document).ready(
 			function() {
-				// 基于准备好的dom，初始化echarts实例
-				//alert("adad");
-				//var myChart1 = echarts.init(document.getElementById('myChart1'));
-				
-				//ajaxData();
 				showChart1();
-				showChart2();
-				showChart3();
+				//showChart2();
+				//showChart3();
 			});
 </script>
 </head>
@@ -93,7 +88,7 @@
 						<dt>
 							<span class="glyphicon glyphicon-th-large" aria-hidden="true"></span>&nbsp使用时间在一天中的分布
 						</dt>
-						<dd>这包括你在上午（12:00以前），下午（12:00-17:00），晚上（17:00以后）使用时间的分布</dd>
+						<dd>这包括你在上午（6:00-12:00），下午（12:00-19:00），晚上（19:00以后）使用时间的分布</dd>
 					</dl>
 				</div>
 			</div>

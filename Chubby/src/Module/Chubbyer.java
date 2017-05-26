@@ -14,7 +14,22 @@ public class Chubbyer {
 		this.day = day;
 		this.point = point;
 	}
+	public Chubbyer() {
+		// TODO Auto-generated constructor stub
+	}
 
+	public String getDay() {
+		return day;
+	}
+	public void setDay(String day) {
+		this.day = day;
+	}
+	public double getPoint() {
+		return point;
+	}
+	public void setPoint(double point) {
+		this.point = point;
+	}
 	public String toString() {
 		return "[\"" + day + "\"" + "," + point + "]";
 	}

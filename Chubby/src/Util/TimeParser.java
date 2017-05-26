@@ -57,6 +57,7 @@ public class TimeParser {
 	}
 	/*
 	 * 把后台数据服务器传过来的时间段调整过来并转换成在开关机时间点
+	 * 这里的Chubbyer的第一个属性表示日期，第二个表示时点
 	 */
 	public static Chubbyer getTimeScatter(String timeString) {
 		Date date = null;
@@ -69,7 +70,6 @@ public class TimeParser {
 			timeLong = date.getTime() + 1000 * 60 * 60 * 8;// 调整时区，加8个小时
 			date = new Date(timeLong);
 			point = (date.getHours()*60+date.getMinutes())/60.0;// 以小时衡量的指标						
-			// return sdf.format(date);
 			return new Chubbyer(sdf.format(date),
 					Math.round(point * 10) / 10.0);
 		} catch (ParseException e) {

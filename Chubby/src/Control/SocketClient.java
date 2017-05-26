@@ -50,6 +50,11 @@ public class SocketClient implements Callable<Object> {
 	public Object call() throws Exception {
 		// TODO Auto-generated method stub
 		// 任务分发
+		if (this.taskType.equals(EC.E_301)) {
+			ArrayList<String> chubbyerString = (ArrayList<String>) this
+					.getOneOverview(serCondition);
+			return chubbyerString;
+		}
 		if (this.taskType.equals(EC.E_301_1)) {
 			ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
 			ArrayList<String> chubbyerString = (ArrayList<String>) this
@@ -64,8 +69,9 @@ public class SocketClient implements Callable<Object> {
 		if (this.taskType.equals(EC.E_301_2)) {
 			ArrayList<String> chubbyerString = (ArrayList<String>) this
 					.getOneOverview(serCondition);
-			double[] useHours;
-			return null;
+			ArrayList<Double> useHours=ChubbyerParser.getUseHoursDistribut(chubbyerString);
+			System.out.println("SC:"+useHours);
+			return useHours;
 		}
 		if (this.taskType.equals(EC.E_301_3)) {
 			ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
@@ -77,9 +83,7 @@ public class SocketClient implements Callable<Object> {
 			System.out.println("SocketClient已返回数据");
 			return chubbyers;
 		}
-		if (this.taskType.equals(EC.E_302)) {
-
-		}
+		
 		return null;
 	}
 
@@ -149,14 +153,6 @@ public class SocketClient implements Callable<Object> {
 			return null;
 		}
 		return null;
-	}
-
-	/*
-	 * 加工getOneOverview函数的结果，方便在页面上展示EC-301_2任务的结果,得到使用时间在一天中的分布
-	 */
-	public double[] getUseHoursDistribut(ArrayList<String> chubbyerString) {
-		return null;
-
 	}
 
 	public static void main(String[] args) {

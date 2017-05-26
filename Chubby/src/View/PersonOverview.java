@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletResponse;
 import Control.SocketClient;
 import Module.Chubbyer;
 import Protocol.EC;
+import Util.ChubbyerParser;
 
 public class PersonOverview extends HttpServlet {
 
@@ -46,27 +47,37 @@ public class PersonOverview extends HttpServlet {
 
 		if (optType.equals(EC.E_301_1)) {
 			// 处理EC.E_301_1,数据应该展示在第1个图表中（柱状图）
-			System.out.println("正在处理"+optType);
+			System.out.println("正在处理" + optType);
 			String serCnondition = (String) request.getSession().getAttribute(
 					"serachCondition");
-			SocketClient client = new SocketClient(serCnondition, EC.E_301_1);
+			SocketClient client = new SocketClient(serCnondition, EC.E_301);
 			comp.submit(client);
 			Future<Object> future;
 			try {
 				future = comp.take();
 				@SuppressWarnings("unchecked")
-				ArrayList<Chubbyer> chubbyers = (ArrayList<Chubbyer>) future.get();
-				//把ArrayList转换成JSON
-				String jsonStr=null;
-				ArrayList<String> days=new ArrayList<String>();
-				ArrayList<Double> points=new ArrayList<Double>();
+				ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
+				ArrayList<String> chubbyerStrings = (ArrayList<String>) future
+						.get();
+				request.getSession().setAttribute("chubbyerStrings",
+						chubbyerStrings);
+				// 加工getOneOverview函数的结果，方便在页面上展示EC-301_1任务的结果,得到每天使用多少小时
+				chubbyers = ChubbyerParser.getUseTime(chubbyerStrings);
+				chubbyers = ChubbyerParser.remoneRepChubbyers(chubbyers);
+				chubbyers = ChubbyerParser.supplementChubbyers(chubbyers);
+				// 把ArrayList转换成JSON
+				String jsonStr = null;
+				ArrayList<String> days = new ArrayList<String>();
+				ArrayList<Double> points = new ArrayList<Double>();
 				for (Chubbyer chubbyer : chubbyers) {
-					days.add("\""+chubbyer.day+"\"");
+					days.add("\"" + chubbyer.day + "\"");
 					points.add(chubbyer.point);
 				}
-				jsonStr="{"+"\"days\""+":"+days+","+"\"points\""+":"+points+"}";
-				//向前端发送JSON串
+				jsonStr = "{" + "\"days\"" + ":" + days + "," + "\"points\""
+						+ ":" + points + "}";
+				// 向前端发送JSON串
 				out.println(jsonStr);
+				System.out.println(optType+"处理完毕"  );
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -75,72 +86,71 @@ public class PersonOverview extends HttpServlet {
 				e.printStackTrace();
 				System.out.println("EC.E_301_1任务结果转换出错");
 			}
-
 		}
 		if (optType.equals(EC.E_301_2)) {
-			//处理EC.E_301_2,数据应该展示在第2个图表中（饼图）
-			System.out.println("正在处理"+optType);
+			// 处理EC.E_301_2,数据应该展示在第2个图表中（饼图）
+			System.out.println("正在处理" + optType);
 			String serCnondition = (String) request.getSession().getAttribute(
 					"serachCondition");
-			SocketClient client = new SocketClient(serCnondition, EC.E_301_2);
-			comp.submit(client);
-			Future<Object> future;
 			try {
-				future = comp.take();
 				@SuppressWarnings("unchecked")
-				ArrayList<Chubbyer> chubbyers = (ArrayList<Chubbyer>) future.get();
-				//把ArrayList转换成JSON
-				String jsonStr=null;
-				ArrayList<String> days=new ArrayList<String>();
-				ArrayList<Double> points=new ArrayList<Double>();
-				jsonStr="{"+"\"morning\""+":"+days+","+"\"afternoon\""+":"+points+","+"\"evening\""+":"+points+"}";
-				//向前端发送JSON串
+				ArrayList<String> chubbyerStrings = (ArrayList<String>) request
+						.getSession().getAttribute("chubbyerStrings");
+				ArrayList<Double> timeDistribut = ChubbyerParser
+						.getUseHoursDistribut(chubbyerStrings);
+				// 转换成JSON
+				String jsonStr = null;
+				jsonStr = "{\"morning\":" + timeDistribut.get(0) + ","
+						+ "\"afternoon\":" + timeDistribut.get(1) + ","
+						+ "\"evening\":" + timeDistribut.get(2) + "}";
+				// 向前端发送JSON串
+				//System.out.println(timeDistribut);
 				out.println(jsonStr);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				System.out.println("EC.E_301_2任务结果转换出错");
+				System.out.println(optType+"处理完毕");
+			} catch (NullPointerException e) {
+				// TODO: handle exception
+				//当session为空的时候
+				String result=this.handEC_301_2(serCnondition, comp);
+				out.println(result);
 			}
 		}
 		if (optType.equals(EC.E_301_3)) {
-			//处理EC.E_301_3,数据应该展示在第3个图表中（散点图）
-			System.out.println("正在处理"+optType);
+			// 处理EC.E_301_3,数据应该展示在第3个图表中（散点图）
+			System.out.println("正在处理" + optType);
 			String serCnondition = (String) request.getSession().getAttribute(
-					"serachCondition");
-			SocketClient client = new SocketClient(serCnondition, EC.E_301_3);
-			comp.submit(client);
-			Future<Object> future;
+					"serachCondition");			
 			try {
-				future = comp.take();
+				ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
 				@SuppressWarnings("unchecked")
-				ArrayList<Chubbyer> chubbyers = (ArrayList<Chubbyer>) future.get();
-				//把ArrayList转换成JSON
-				String jsonStr=null;
-				ArrayList<String> openPoints=new ArrayList<String>();
-				ArrayList<String> closePoints=new ArrayList<String>();			
-				for (int i = 0; i <chubbyers.size(); i++) {
-					if(i<chubbyers.size()/2){
-						//前半部分的数据是开机的节点
+				ArrayList<String> chubbyerString = (ArrayList<String>) request
+						.getSession().getAttribute("chubbyerStrings");
+				// 加工getOneOverview函数的结果，方便在页面上展示EC-301_3任务的结果,得到开关机时间点
+				chubbyers = ChubbyerParser.getUseTimeScatter(chubbyerString);
+				// 把ArrayList转换成JSON
+				String jsonStr = null;
+				ArrayList<String> openPoints = new ArrayList<String>();
+				ArrayList<String> closePoints = new ArrayList<String>();
+				for (int i = 0; i < chubbyers.size(); i++) {
+					if (i < chubbyers.size() / 2) {
+						// 前半部分的数据是开机的节点
 						openPoints.add(chubbyers.get(i).toString());
-					}else {
-						//后半部分的数据是关机的节点
+					} else {
+						// 后半部分的数据是关机的节点
 						closePoints.add(chubbyers.get(i).toString());
 					}
 				}
-				//{"openPoints":[['2017/05/11',11.2],['2017/05/11',11.2]],"closePoints":[['2017/05/11',12.2],['2017/05/11',13.2]]}
-				jsonStr="{"+"\"openPoints\""+":"+openPoints+","+"\"closePoints\""+":"+closePoints+"}";
-				//向前端发送JSON串
+				// {"openPoints":[['2017/05/11',11.2],['2017/05/11',11.2]],"closePoints":[['2017/05/11',12.2],['2017/05/11',13.2]]}
+				jsonStr = "{" + "\"openPoints\"" + ":" + openPoints + ","
+						+ "\"closePoints\"" + ":" + closePoints + "}";
+				// 向前端发送JSON串
 				out.println(jsonStr);
-			} catch (InterruptedException e) {
+				System.out.println(optType+"处理完毕" );
+				//System.out.println(jsonStr);
+			} catch (NullPointerException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				System.out.println("EC.E_301_3任务结果转换出错");
+				//当session为空的时候
+				String result=this.handEC_301_3(serCnondition, comp);
+				out.println(result);
 			}
 
 		}
@@ -167,4 +177,81 @@ public class PersonOverview extends HttpServlet {
 		out.close();
 	}
 
+	/*
+	 * 重新处理任务
+	 */
+	@SuppressWarnings({ "null", "unchecked" })
+	public String handEC_301_2(String ser, CompletionService<Object> comp) {
+		System.out.println("正在重新处理EC_301_2");
+		String serCnondition = ser;
+		SocketClient client = new SocketClient(serCnondition, EC.E_301_2);
+		comp.submit(client);
+		Future<Object> future = null;
+		try {
+			// future = comp.take();
+			ArrayList<Double> timeDistribut;
+			timeDistribut = (ArrayList<Double>) future.get();
+			// 转换成JSON
+			String jsonStr = null;
+			jsonStr = "{\"morning\":" + timeDistribut.get(0) + ","
+					+ "\"afternoon\":" + timeDistribut.get(1) + ","
+					+ "\"evening\":" + timeDistribut.get(2) + "}";
+			// 向前端发送JSON串
+			//System.out.println(timeDistribut);
+			System.out.println("EC_301_2重新处理完毕");
+			return jsonStr;
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("EC.E_301_2任务结果转换出错");
+		} 
+		return null;
+	}
+
+	/*
+	 * 重新处理任务
+	 */
+	public String handEC_301_3(String ser, CompletionService<Object> comp){
+		System.out.println("正在重新处理EC_301_3");
+		String serCnondition = ser;
+		SocketClient client = new SocketClient(serCnondition, EC.E_301_3);
+		comp.submit(client);
+		Future<Object> future;
+		try {
+			future = comp.take();
+			@SuppressWarnings("unchecked")
+			ArrayList<Chubbyer> chubbyers = (ArrayList<Chubbyer>) future
+					.get();
+			// 把ArrayList转换成JSON
+			String jsonStr = null;
+			ArrayList<String> openPoints = new ArrayList<String>();
+			ArrayList<String> closePoints = new ArrayList<String>();
+			for (int i = 0; i < chubbyers.size(); i++) {
+				if (i < chubbyers.size() / 2) {
+					// 前半部分的数据是开机的节点
+					openPoints.add(chubbyers.get(i).toString());
+				} else {
+					// 后半部分的数据是关机的节点
+					closePoints.add(chubbyers.get(i).toString());
+				}
+			}
+			// {"openPoints":[['2017/05/11',11.2],['2017/05/11',11.2]],"closePoints":[['2017/05/11',12.2],['2017/05/11',13.2]]}
+			jsonStr = "{" + "\"openPoints\"" + ":" + openPoints + ","
+					+ "\"closePoints\"" + ":" + closePoints + "}";
+			// 向前端发送JSON串
+			System.out.println("EC_301_3重新处理完毕");
+			return jsonStr;
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ExecutionException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("EC.E_301_3任务结果转换出错");
+		}
+		return null;
+	}
 }
