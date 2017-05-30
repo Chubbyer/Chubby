@@ -129,6 +129,7 @@ public class SocketClient implements Callable<Object> {
 					// 请求的服务器可以接受任务，发送具体的任务类型
 					this.serverIP=availableHost.get(0);
 					this.port=Integer.parseInt(availableHost.get(1));
+					System.out.println("可用："+this.serverIP+" "+this.port);
 					String data = EC.E_301 + id;
 					this.socket = new Socket(this.serverIP, this.port);
 					Net.sentData(this.socket, data);

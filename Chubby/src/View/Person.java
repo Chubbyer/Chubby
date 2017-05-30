@@ -40,20 +40,21 @@ public class Person extends HttpServlet {
 		response.setContentType("text/html");
 
 		String serach = request.getParameter("search");
-		
+
 		System.out.println("Serach:" + serach);
-		MongoDBJDBC mongoer = new MongoDBJDBC(ChubbyConfig.DEFAULT_MONGODB_IP,ChubbyConfig.DEFAULT_MONGODB_PORT,"User");
+		MongoDBJDBC mongoer = new MongoDBJDBC(ChubbyConfig.DEFAULT_MONGODB_IP,
+				ChubbyConfig.DEFAULT_MONGODB_PORT, "User");
 		User user = mongoer.findUserInfo(serach);
-		if (user != null){
-			//转到数据展示的页面
+		if (user != null) {
+			// 转到数据展示的页面
 			request.getSession().setAttribute("serachCondition", serach);
 			request.getRequestDispatcher("Person.jsp").forward(request,
 					response);
-		}else {
-			//转到首页并提示不存在与之匹配的信息
+		} else {
+			// 转到首页并提示不存在与之匹配的信息
 			request.setAttribute("errorInfo", "不存在与之匹配的信息");
-			request.getRequestDispatcher("index.jsp").forward(request,
-					response);
+			request.getRequestDispatcher("index.jsp")
+					.forward(request, response);
 		}
 	}
 }

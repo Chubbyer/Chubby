@@ -45,7 +45,7 @@ public class TaskerPlus implements Callable<Object> {
 		// 把这部分的用户平均使用时间放在chubbyers之中
 		ArrayList<String> chubbyers = new ArrayList<String>();
 		ArrayList<User> users = new ArrayList<User>();
-		MongoDBJDBC mongoer = new MongoDBJDBC("User");
+		MongoDBJDBC mongoer = MongoDBJDBC.createMongoger("User");
 		int userStart = (order - 1) * 10;
 		int userEnd = order * 10;
 		users = mongoer.findUsersInfo(userStart, userEnd);// 这里的数字待定

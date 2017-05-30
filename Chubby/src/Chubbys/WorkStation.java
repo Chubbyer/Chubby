@@ -53,7 +53,7 @@ public class WorkStation {
 			while (true) {
 				if (this.hostList.size() > 0) {
 					heartBeat.hostList = this.hostList;
-					//this.hostList = new ArrayList<DataHost>();
+					// this.hostList = new ArrayList<DataHost>();
 				}
 				// 获得连接
 				accpetSocket = serverSocket.accept();
@@ -71,18 +71,31 @@ public class WorkStation {
 				if (oType.equals(SC.CHUBBYER_REPORT)) {
 					// 附加的数据，eg:{"ip":"192.168.10.23","port":10001,"priority":12}
 					String additional = receiveData.toString().substring(3);
-					
+
 					try {
 						JSONObject jsonObj = new JSONObject(additional);
 						String ip = jsonObj.getString("ip");
 						System.out.println("收到" + ip + "加入Chubby系统的报告");
 						int port = jsonObj.getInt("port");
 						int priority = jsonObj.getInt("priority");
-						this.hostList.add(new DataHost(ip, port, priority));
-						if(Net.sentData(accpetSocket, SC.CHUBBYER_REPORT))
-							System.out.println("   "+ ip + "成功加入Chubby系统");
+						if (this.hostList.size()<1) {
+							this.hostList.add(new DataHost(ip, port, priority));
+						} else {
+							for (int i = 0; i < this.hostList.size(); i++) {
+								if (this.hostList.get(i).ip.equals(ip))
+									this.hostList.get(i).priority = priority;
+								else {
+									this.hostList.add(new DataHost(ip, port,
+											priority));
+									System.out.println("正在添加"
+											+ this.hostList.get(i).ip);
+								}
+							}
+						}
+						if (Net.sentData(accpetSocket, SC.CHUBBYER_REPORT))
+							System.out.println("   " + ip + "成功加入Chubby系统");
 						this.hostList = this.sortHostPriority(this.hostList);
-						
+
 						continue;
 					} catch (JSONException e) {
 						// TODO Auto-generated catch block
@@ -100,8 +113,8 @@ public class WorkStation {
 						System.out.println("   收到" + ip + "的心跳测试报告");
 						int priority = jsonObj.getInt("priority");
 						for (int i = 0; i < this.hostList.size(); i++) {
-							if(this.hostList.get(i).ip.equals(ip))
-								this.hostList.get(i).priority=priority;
+							if (this.hostList.get(i).ip.equals(ip))
+								this.hostList.get(i).priority = priority;
 						}
 						this.hostList = this.sortHostPriority(this.hostList);
 						continue;
@@ -155,9 +168,7 @@ public class WorkStation {
 						SC.HEART_BEAT);
 				System.out.println("    已向" + testIp + "发起心跳测试");
 			}
-
 		}
-
 	}
 
 	public static void main(String[] args) throws InterruptedException {
@@ -184,12 +195,12 @@ public class WorkStation {
 		// System.out.println(dataHost.port);
 		// }
 		// Net.sendDataByUDP("127.0.0.1", 9090, "hello");
-		 WorkStation ws = new WorkStation(10000);
-		 ws.action();
-//		HeartBeat heartBeat = new HeartBeat(null, 5 * 1000);
-//		heartBeat.start();
-//		Thread.sleep(11000);
-//		heartBeat.hostList = dataHosts;
+		WorkStation ws = new WorkStation(10000);
+		ws.action();
+		// HeartBeat heartBeat = new HeartBeat(null, 5 * 1000);
+		// heartBeat.start();
+		// Thread.sleep(11000);
+		// heartBeat.hostList = dataHosts;
 	}
 }
 
@@ -222,8 +233,8 @@ class HeartBeat extends Thread {
 		@Override
 		public void timeUp() {
 			// TODO Auto-generated method stub
-			
-			if (hostList != null){
+
+			if (hostList != null) {
 				System.out.println("发起心跳测试  " + (new Date()).toLocaleString());
 				WorkStation.heartBeat(hostList);
 			}

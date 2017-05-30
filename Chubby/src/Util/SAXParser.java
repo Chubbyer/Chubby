@@ -57,7 +57,7 @@ public class SAXParser {
 			System.out.println("Parsing End");
 			mongoer.closeMongoDB();
 			//更新User的信息
-			MongoDBJDBC mongoer=new MongoDBJDBC("User");
+			MongoDBJDBC mongoer=MongoDBJDBC.createMongoger("User");
 			mongoer.updateUserInfo(host, "Flag", true);
 			mongoer.updateUserInfo(host, "LogLines", lines);
 		}
@@ -140,7 +140,7 @@ public class SAXParser {
 		// System.out.println(bookHandler.lines);
 		// 事务机制
 		//MongoDBJDBC.findAll("Chubby", "Security");
-		MongoDBJDBC mongoer=new MongoDBJDBC("Leung");
+		MongoDBJDBC mongoer=MongoDBJDBC.createMongoger("Leung");
 		SAXParser saxParser=new SAXParser(mongoer, "Leung", "Security");
 		SAXParser.writeToMongo(saxParser);
 	}

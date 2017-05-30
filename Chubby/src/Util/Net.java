@@ -103,7 +103,7 @@ public class Net {
 
 	public static void main(String[] args) {
 		Date d = new Date();
-		System.out.println(Net.receiveDataByUDP(9090));
-
+		//System.out.println(Net.receiveDataByUDP(9090));
+		Net.sendDataByUDP("172.16.70.201", 9090, "hello");
 	}
 }

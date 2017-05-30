@@ -41,8 +41,7 @@ import Util.Net;
 public class SocketServer {
 	private String localHostName;
 	private String localIp;
-	public String dbIP = "localhost";// 目标数据库IP
-	public int dbPort = 27017;// 目标数据库端口
+	public static int dbPosition=0;// 目标数据库位置，0表示本地，1表示默认的位置
 	private ServerSocket serverSocket = null;
 	private Socket socket = null;
 	private String status = SC.SERVER_OK;
@@ -199,8 +198,7 @@ public class SocketServer {
 			Date nowDate = new Date();
 			if (mongoer.writeLog(localHostName, nowDate.toString())) {
 				System.out.println("成功切换至默认数据库服务器");
-				this.dbIP = ChubbyConfig.DEFAULT_MONGODB_IP;
-				this.dbPort = ChubbyConfig.DEFAULT_MONGODB_PORT;
+				SocketServer.dbPosition=1;
 				// 重新报告
 				if (this.report()) {
 					return true;

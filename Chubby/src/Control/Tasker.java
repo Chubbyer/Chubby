@@ -48,7 +48,7 @@ public class Tasker implements Callable<Object> {
 	@Override
 	public Object call() throws Exception {
 		// TODO Auto-generated method stub
-		MongoDBJDBC mongoer = new MongoDBJDBC("User");
+		MongoDBJDBC mongoer = MongoDBJDBC.createMongoger("User");
 		// 到User信息库当中去找能匹配userId的User
 		User user = mongoer.findUserInfo(userId);
 		if (user == null) {
@@ -114,7 +114,7 @@ public class Tasker implements Callable<Object> {
 		MongoDBJDBC mongoer;
 		if (user.getR_Flag()) {
 			// 直接从前缀为R_的集合中提取数据加工发给客户端,这里涉及的数据量比较小
-			mongoer = new MongoDBJDBC(user.getHost());// 传入user的主机名
+			mongoer = MongoDBJDBC.createMongoger(user.getHost());// 传入user的主机名
 			chubbyers = mongoer.findAllChubbyers(user.getHost());
 		} else if (user.getFlag()) {
 			// 从原始的数据库集合总分析出结果发送给客户端,这里涉及的数据量比较大
@@ -122,7 +122,7 @@ public class Tasker implements Callable<Object> {
 		} else {
 			// 从原始的文件开始分析,这里涉及的数据量比较大
 			// 先将文件读入数据库
-			mongoer = new MongoDBJDBC(user.getHost());// 传入user的主机名
+			mongoer = MongoDBJDBC.createMongoger(user.getHost());// 传入user的主机名
 			SAXParser saxParser = new SAXParser(mongoer, user.getHost(),
 					"Security");
 			SAXParser.writeToMongo(saxParser);// 执行结束后会将user.getFlag()=true
@@ -166,8 +166,7 @@ public class Tasker implements Callable<Object> {
 		// }
 		ArrayList<String> finallChubbyers = this.sortChubbyers(orderChubbyers);
 		// 把finalChubbyers写入R_集合
-		MongoDBJDBC mongoer = new MongoDBJDBC("User");
-		mongoer = new MongoDBJDBC(user.getHost());
+		MongoDBJDBC mongoer = MongoDBJDBC.createMongoger(user.getHost());
 		mongoer.insertChubbyers(user.getHost(), finallChubbyers);
 		return finallChubbyers;
 	}

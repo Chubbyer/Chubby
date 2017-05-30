@@ -55,7 +55,7 @@ public class Analyzer implements Callable<Object> {
 	 * 整个系统的核心所在
 	 */
 	public ArrayList<String> getChubbyers(String hostName, int threadNum) {
-		MongoDBJDBC mongoer = new MongoDBJDBC(hostName);
+		MongoDBJDBC mongoer = MongoDBJDBC.createMongoger(hostName);
 		int readLines = (int) (this.user.getLogLines());
 		int startIndex, endIndex;
 		startIndex = readLines / 10 * threadNum;
