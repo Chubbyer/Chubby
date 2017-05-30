@@ -17,6 +17,7 @@ import Module.Host;
 import Module.HostList;
 import Protocol.EC;
 import Protocol.SC;
+import Util.ChubbyConfig;
 import Util.ChubbyerParser;
 import Util.Net;
 import Util.TimeParser;
@@ -69,8 +70,9 @@ public class SocketClient implements Callable<Object> {
 		if (this.taskType.equals(EC.E_301_2)) {
 			ArrayList<String> chubbyerString = (ArrayList<String>) this
 					.getOneOverview(serCondition);
-			ArrayList<Double> useHours=ChubbyerParser.getUseHoursDistribut(chubbyerString);
-			System.out.println("SC:"+useHours);
+			ArrayList<Double> useHours = ChubbyerParser
+					.getUseHoursDistribut(chubbyerString);
+			System.out.println("SC:" + useHours);
 			return useHours;
 		}
 		if (this.taskType.equals(EC.E_301_3)) {
@@ -79,24 +81,24 @@ public class SocketClient implements Callable<Object> {
 					.getOneOverview(serCondition);
 			// 加工getOneOverview函数的结果，方便在页面上展示EC-301_3任务的结果,得到开关机时间点
 			chubbyers = ChubbyerParser.getUseTimeScatter(chubbyerString);
-			//chubbyers = ChubbyerParser.supplementChubbyers(chubbyers);
+			// chubbyers = ChubbyerParser.supplementChubbyers(chubbyers);
 			System.out.println("SocketClient已返回数据");
 			return chubbyers;
 		}
-		
+
 		return null;
 	}
 
 	// 检查与服务器的连接
-	public Object checkConnection() {
+	public Object getAvailableHost() {
 		Object returnStr = null;
 		while (true) {
 			try {
-				this.serverIP = HostList.nextHost().getServerIP();
-				this.port = HostList.nextHost().getPort();
-				System.out.println("正在请求：" + serverIP + " 端口：" + port);
+				String serverIP = ChubbyConfig.STATION_IP;
+				int port = ChubbyConfig.STATION_PORT;
+				System.out.println("正在向工作站请求可用的数据服务器");
 				this.socket = new Socket(serverIP, port);
-				String data = SC.CHECK_CONNECTION;
+				String data = SC.CLIENT_REQUEST;
 				Net.sentData(socket, data);// 发送表示请求连接的字段
 				returnStr = Net.acceptData(socket);// 收到服务端的回应
 				break;
@@ -120,27 +122,22 @@ public class SocketClient implements Callable<Object> {
 		// 当前服务器（初始适配的服务器）就绪
 		try {
 			for (int i = 0; i < HostList.hostsCount; i++) {
-				// 随机向已登记的服务器请求连接
-				Object checkResult = this.checkConnection();
-				if (checkResult != null) {
-					String checkResultString = checkResult.toString()
-							.substring(0, 3);
-					if (checkResultString.equals(SC.SERVER_OK)) {
-						// 请求的服务器可以接受任务，发送具体的任务类型
-						String data = EC.E_301 + id;
-						this.socket = new Socket(this.serverIP, this.port);
-						Net.sentData(this.socket, data);
-						System.out.println("已发送请求，正在等待接受数据···");
-						return Net.acceptData(this.socket);
-					} else {
-						System.out.println("该服务器正忙");
-						continue;
-					}
+				// 从工作组获得可用的服务器请求
+				ArrayList<String> availableHost = (ArrayList<String>) this
+						.getAvailableHost();
+				if (availableHost != null) {
+					// 请求的服务器可以接受任务，发送具体的任务类型
+					this.serverIP=availableHost.get(0);
+					this.port=Integer.parseInt(availableHost.get(1));
+					String data = EC.E_301 + id;
+					this.socket = new Socket(this.serverIP, this.port);
+					Net.sentData(this.socket, data);
+					System.out.println("已发送请求，正在等待接受数据···");
+					return Net.acceptData(this.socket);
 				} else {
 					System.out.println("未接受到回应");
 				}
 			}
-
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -162,17 +159,19 @@ public class SocketClient implements Callable<Object> {
 		ArrayList<String> chubbyers = (ArrayList<String>) sClient
 				.getOneOverview("Leung");
 		System.out.println(chubbyers.size());
-//		for (int i = 0; i < 50; i++) {
-//			System.out.println(chubbyers.get(i));
-//		}
+		// for (int i = 0; i < 50; i++) {
+		// System.out.println(chubbyers.get(i));
+		// }
 		ArrayList<Chubbyer> chubbyerList = new ArrayList<Chubbyer>();
 		// 得到每天的开关机时点
 		chubbyerList = ChubbyerParser.getUseTimeScatter(chubbyers);
-		for (int i = 0; i < chubbyerList.size()/2; i++) {
-			System.out.print("OP:"+chubbyerList.get(i).day+" ");
+		for (int i = 0; i < chubbyerList.size() / 2; i++) {
+			System.out.print("OP:" + chubbyerList.get(i).day + " ");
 			System.out.println(chubbyerList.get(i).point);
-			System.out.print("CP:"+chubbyerList.get(i+chubbyerList.size()/2).day+" ");
-			System.out.println(chubbyerList.get(i+chubbyerList.size()/2).point);
+			System.out.print("CP:"
+					+ chubbyerList.get(i + chubbyerList.size() / 2).day + " ");
+			System.out
+					.println(chubbyerList.get(i + chubbyerList.size() / 2).point);
 		}
 		// System.out.println(sClient.getOneOverview("Leung"));
 

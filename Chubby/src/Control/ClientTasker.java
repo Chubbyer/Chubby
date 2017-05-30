@@ -10,6 +10,7 @@ import Module.Chubbyer;
 import Module.HostList;
 import Protocol.EC;
 import Protocol.SC;
+import Util.ChubbyConfig;
 import Util.Net;
 
 /*
@@ -54,15 +55,15 @@ public class ClientTasker implements Callable<Object> {
 	}
 
 	// 检查与服务器的连接
-	public Object checkConnection() {
+	public Object getAvailableHost() {
 		Object returnStr = null;
 		while (true) {
 			try {
-				this.serverIP = HostList.hosts[order].getServerIP();
-				this.port = HostList.hosts[order].getPort();
-				System.out.println(order + "正在请求：" + serverIP + " 端口：" + port);
+				String serverIP = ChubbyConfig.STATION_IP;
+				int port = ChubbyConfig.STATION_PORT;
+				System.out.println("正在向工作站请求可用的数据服务器");
 				this.socket = new Socket(serverIP, port);
-				String data = SC.CHECK_CONNECTION;
+				String data = SC.CLIENT_REQUEST;
 				Net.sentData(socket, data);// 发送表示请求连接的字段
 				returnStr = Net.acceptData(socket);// 收到服务端的回应
 				break;
@@ -98,20 +99,19 @@ public class ClientTasker implements Callable<Object> {
 	public ArrayList<String> getUseHoursRanking() {
 		try {
 			// 向order对应的已登记的服务器请求连接
-			Object checkResult = this.checkConnection();
-			if (checkResult != null) {
-				String checkResultString = checkResult.toString().substring(0,
-						3);
-				if (checkResultString.equals(SC.SERVER_OK)) {
-					// 请求的服务器可以接受任务，发送具体的任务类型
-					String data = EC.E_302 + order;
-					this.socket = new Socket(this.serverIP, this.port);
-					Net.sentData(this.socket, data);
-					System.out.println("已发送E_302请求，正在等待接受数据···");
-					return (ArrayList<String>) Net.acceptData(this.socket);
-				} else {
-					System.out.println("该服务器正忙");
-				}
+			// 从工作站获得可用的服务器请求
+			ArrayList<String> availableHost = (ArrayList<String>) this
+					.getAvailableHost();
+			if (availableHost != null) {
+				// 请求的服务器可以接受任务，发送具体的任务类型
+				this.serverIP = availableHost.get(0);
+				this.port = Integer.parseInt(availableHost.get(1));
+				// 请求的服务器可以接受任务，发送具体的任务类型
+				String data = EC.E_302 + order;
+				this.socket = new Socket(this.serverIP, this.port);
+				Net.sentData(this.socket, data);
+				System.out.println("已发送E_302请求，正在等待接受数据···");
+				return (ArrayList<String>) Net.acceptData(this.socket);
 			} else {
 				System.out.println("未接受到回应");
 			}
@@ -131,28 +131,26 @@ public class ClientTasker implements Callable<Object> {
 	}
 
 	/*
-	 * 根据EC-303的约定，获得所有人的开关几时间节点， 接受到的数据是例如
-	 * 前半部分表示的是开机时间节点，后半部分是关机
-	 * [['2017/05/11',11.2],['2017/05/11',11.2]],[['2017/05/11',12.2],['2017/05/11',13.2]]类型的列表
-	 */ 
+	 * 根据EC-303的约定，获得所有人的开关几时间节点， 接受到的数据是例如 前半部分表示的是开机时间节点，后半部分是关机 [[
+	 * '2017/05/11',11.2],['2017/05/11',11.2]],[['2017/05/11',12.2],['2017/05/11',13.2]]类型的列表
+	 */
 	@SuppressWarnings("unchecked")
-	public ArrayList<String> getUserScatters(){
+	public ArrayList<String> getUserScatters() {
 		try {
 			// 向order对应的已登记的服务器请求连接
-			Object checkResult = this.checkConnection();
-			if (checkResult != null) {
-				String checkResultString = checkResult.toString().substring(0,
-						3);
-				if (checkResultString.equals(SC.SERVER_OK)) {
-					// 请求的服务器可以接受任务，发送具体的任务类型
-					String data = EC.E_303 + order;
-					this.socket = new Socket(this.serverIP, this.port);
-					Net.sentData(this.socket, data);
-					System.out.println("已发送E_303请求，正在等待接受数据···");
-					return (ArrayList<String>) Net.acceptData(this.socket);
-				} else {
-					System.out.println("该服务器正忙");
-				}
+			// 从工作站获得可用的服务器请求
+			ArrayList<String> availableHost = (ArrayList<String>) this
+					.getAvailableHost();
+			if (availableHost != null) {
+				// 请求的服务器可以接受任务，发送具体的任务类型
+				this.serverIP = availableHost.get(0);
+				this.port = Integer.parseInt(availableHost.get(1));
+				// 请求的服务器可以接受任务，发送具体的任务类型
+				String data = EC.E_303 + order;
+				this.socket = new Socket(this.serverIP, this.port);
+				Net.sentData(this.socket, data);
+				System.out.println("已发送E_303请求，正在等待接受数据···");
+				return (ArrayList<String>) Net.acceptData(this.socket);
 			} else {
 				System.out.println("未接受到回应");
 			}
