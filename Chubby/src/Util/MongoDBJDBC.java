@@ -43,6 +43,9 @@ public class MongoDBJDBC {
 		this.dbName = host;
 	}
 
+	/*
+	 * 根据数据服务器所使用的数据库创建不同的实例
+	 */
 	public static MongoDBJDBC createMongoger(String host) {
 		if (SocketServer.dbPosition == 0) {
 			return new MongoDBJDBC(host);

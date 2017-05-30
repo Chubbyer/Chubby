@@ -46,9 +46,9 @@ public class TaskerPlus implements Callable<Object> {
 		ArrayList<String> chubbyers = new ArrayList<String>();
 		ArrayList<User> users = new ArrayList<User>();
 		MongoDBJDBC mongoer = MongoDBJDBC.createMongoger("User");
-		int userStart = (order - 1) * 10;
+		int userStart = (order - 1) * 10;// 这里的数字待定
 		int userEnd = order * 10;
-		users = mongoer.findUsersInfo(userStart, userEnd);// 这里的数字待定
+		users = mongoer.findUsersInfo(userStart, userEnd);
 		if (eType.equals(EC.E_302)) {
 			if (users.size() > 0) {
 				for (int i = 0; i < users.size(); i++) {

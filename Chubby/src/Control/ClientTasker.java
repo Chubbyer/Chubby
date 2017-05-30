@@ -19,7 +19,7 @@ import Util.Net;
  */
 public class ClientTasker implements Callable<Object> {
 	public String taskType;
-	public int order;// 线程序号，这代表着将要访问的主机序号
+	public int order;// 线程序号，这代表着被访问的数据服务器应该处理哪部分数据
 	public Socket socket;// 用与保持与数据服务器的链接
 	public String serverIP;
 	public int port;
@@ -54,7 +54,7 @@ public class ClientTasker implements Callable<Object> {
 		return null;
 	}
 
-	// 检查与服务器的连接
+	// 向工作站请求一个最优的数据服务器
 	public Object getAvailableHost() {
 		Object returnStr = null;
 		while (true) {
@@ -98,7 +98,6 @@ public class ClientTasker implements Callable<Object> {
 	@SuppressWarnings("unchecked")
 	public ArrayList<String> getUseHoursRanking() {
 		try {
-			// 向order对应的已登记的服务器请求连接
 			// 从工作站获得可用的服务器请求
 			ArrayList<String> availableHost = (ArrayList<String>) this
 					.getAvailableHost();

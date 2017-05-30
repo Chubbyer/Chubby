@@ -3,7 +3,6 @@ package View;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
@@ -16,12 +15,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import Control.Analyzer;
 import Control.ClientTasker;
 import Module.Chubbyer;
-import Module.OrderChubbyer;
 import Protocol.EC;
 import Util.ChubbyerParser;
+import Util.TimeOut;
+import Util.Timing;
 
 public class Overview extends HttpServlet {
 
@@ -56,6 +55,8 @@ public class Overview extends HttpServlet {
 			}
 			ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
 			ArrayList<String> chubbyerString = new ArrayList<String>();
+			TimeOutHandle timeOutHandle = new TimeOutHandle(out, 15 * 1000);
+			timeOutHandle.startTiming();
 			for (int i = 0; i < threadNum; i++) {
 				try {
 					// 获得已完成任务的子线程的结果,每个线程返回的是一批同学的PC平均使用时间
@@ -70,6 +71,7 @@ public class Overview extends HttpServlet {
 					e.printStackTrace();
 				}
 			}
+			timeOutHandle.closeTiming();
 			if (chubbyerString != null) {
 				// 按使用时间排序并加工成Chubbyer对象的列表
 				chubbyers = ChubbyerParser
@@ -86,7 +88,7 @@ public class Overview extends HttpServlet {
 						+ ":" + hours + "}";
 				// 向前端发送JSON串
 				out.println(jsonStr);
-			}else {
+			} else {
 				out.println("null");
 			}
 		}
@@ -98,6 +100,8 @@ public class Overview extends HttpServlet {
 			}
 			ArrayList<String> openPoints = new ArrayList<String>();
 			ArrayList<String> closePoints = new ArrayList<String>();
+			TimeOutHandle timeOutHandle = new TimeOutHandle(out, 15 * 1000);
+			timeOutHandle.startTiming();
 			for (int i = 0; i < threadNum; i++) {
 				try {
 					// 获得已完成任务的子线程的结果,每个线程返回的是一批同学的PC平均使用时间
@@ -106,6 +110,7 @@ public class Overview extends HttpServlet {
 					@SuppressWarnings("unchecked")
 					ArrayList<String> chubbyerString = (ArrayList<String>) future
 							.get();
+					timeOutHandle.closeTiming();
 					for (int j = 0; j < chubbyerString.size(); j++) {
 						if (i < chubbyerString.size() / 2) {
 							// 前半部分的数据是开机的节点
@@ -121,11 +126,14 @@ public class Overview extends HttpServlet {
 				}
 			}
 			// 把ArrayList转换成JSON
-			String jsonStr = null;
-			jsonStr = "{" + "\"openPoints\":" + openPoints + ","
-					+ "\"closePoints\":" + closePoints + "}";
-			// 向前端发送JSON串
-			out.println(jsonStr);
+			if (openPoints.size() > 0 && closePoints.size() > 0) {
+				String jsonStr = null;
+				jsonStr = "{" + "\"openPoints\":" + openPoints + ","
+						+ "\"closePoints\":" + closePoints + "}";
+				// 向前端发送JSON串
+				out.println(jsonStr);
+			}else
+				out.println("null");
 		}
 		out.flush();
 		out.close();

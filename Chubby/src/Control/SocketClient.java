@@ -123,6 +123,7 @@ public class SocketClient implements Callable<Object> {
 		try {
 			for (int i = 0; i < HostList.hostsCount; i++) {
 				// 从工作组获得可用的服务器请求
+				@SuppressWarnings("unchecked")
 				ArrayList<String> availableHost = (ArrayList<String>) this
 						.getAvailableHost();
 				if (availableHost != null) {

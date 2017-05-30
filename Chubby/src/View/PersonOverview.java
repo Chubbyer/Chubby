@@ -3,6 +3,7 @@ package View;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
@@ -15,10 +16,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import Chubbys.WorkStation;
 import Control.SocketClient;
 import Module.Chubbyer;
 import Protocol.EC;
 import Util.ChubbyerParser;
+import Util.TimeOut;
+import Util.Timing;
 
 public class PersonOverview extends HttpServlet {
 
@@ -55,12 +59,15 @@ public class PersonOverview extends HttpServlet {
 			Future<Object> future;
 			try {
 				future = comp.take();
-				@SuppressWarnings("unchecked")
 				ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
+				TimeOutHandle timeOutHandle = new TimeOutHandle(out, 10 * 1000);
+				timeOutHandle.startTiming();// 启动倒计时
+				@SuppressWarnings("unchecked")
 				ArrayList<String> chubbyerStrings = (ArrayList<String>) future
 						.get();
 				// chubbyerStrings是三个图表的数据基础
 				if (chubbyerStrings != null) {
+					timeOutHandle.closeTiming();// 取消倒计时
 					request.getSession().setAttribute("chubbyerStrings",
 							chubbyerStrings);
 					// 加工getOneOverview函数的结果，方便在页面上展示EC-301_1任务的结果,得到每天使用多少小时
@@ -81,7 +88,7 @@ public class PersonOverview extends HttpServlet {
 					// 向前端发送JSON串
 					out.println(jsonStr);
 					System.out.println(optType + "处理完毕");
-				}else {
+				} else {
 					out.println("");
 					System.out.println(optType + "未获得数据");
 				}
@@ -117,8 +124,13 @@ public class PersonOverview extends HttpServlet {
 			} catch (NullPointerException e) {
 				// TODO: handle exception
 				// 当session为空的时候
+				TimeOutHandle timeOutHandle = new TimeOutHandle(out, 10 * 1000);
+				timeOutHandle.startTiming();// 启动倒计时
 				String result = this.handEC_301_2(serCnondition, comp);
-				out.println(result);
+				if (request != null) {
+					timeOutHandle.closeTiming();
+					out.println(result);
+				}
 			}
 		}
 		if (optType.equals(EC.E_301_3)) {
@@ -156,8 +168,13 @@ public class PersonOverview extends HttpServlet {
 			} catch (NullPointerException e) {
 				// TODO Auto-generated catch block
 				// 当session为空的时候
+				TimeOutHandle timeOutHandle = new TimeOutHandle(out, 10 * 1000);
+				timeOutHandle.startTiming();// 启动倒计时
 				String result = this.handEC_301_3(serCnondition, comp);
-				out.println(result);
+				if (request != null) {
+					timeOutHandle.closeTiming();
+					out.println(result);
+				}
 			}
 		}
 		out.flush();
@@ -258,5 +275,39 @@ public class PersonOverview extends HttpServlet {
 			System.out.println("EC.E_301_3任务结果转换出错");
 		}
 		return null;
+	}
+}
+
+/*
+ * 如果超过指定的时间还没获得结果将自动向前端输出空
+ */
+class TimeOutHandle implements TimeOut {
+	public Timing timing;
+	public long delay;// 倒计时时间
+	public PrintWriter out;
+	public boolean timingFlag = true;
+
+	public TimeOutHandle(PrintWriter out, long delay) {
+		// TODO Auto-generated constructor stub
+		this.delay = delay;
+		this.timing = new Timing(delay, this);
+		this.out = out;
+	}
+
+	public void startTiming() {
+		if (timingFlag)
+			timing.start();
+	}
+
+	public void closeTiming() {
+		timingFlag = false;
+	}
+
+	@Override
+	public void timeUp() {
+		// TODO Auto-generated method stub
+		if (timingFlag)
+			out.println("null");
+		out.close();
 	}
 }

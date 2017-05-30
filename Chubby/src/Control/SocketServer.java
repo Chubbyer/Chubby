@@ -45,6 +45,7 @@ public class SocketServer {
 	private ServerSocket serverSocket = null;
 	private Socket socket = null;
 	private String status = SC.SERVER_OK;
+	private int priority=10;//优先权，与最大可接受的连接数相等
 	private int maxLinks = 10;// 最大可接受的连接数
 	// 监听端口号
 	private int port = 10001;
@@ -155,7 +156,7 @@ public class SocketServer {
 					System.out.println("正在处理E_303:(" + additional + ")任务···");
 				}
 				// 最后检查任务是否已执行完
-				int alreadyLinks = 10 - this.maxLinks;
+				int alreadyLinks = this.priority - this.maxLinks;
 				for (int i = 0; i < alreadyLinks; i++) {
 					try {
 						// 检查任务线程是否执行完
@@ -250,6 +251,9 @@ public class SocketServer {
 	}
 }
 
+/*
+ * 参加心跳测试的类
+ */
 class HeartBeat extends Thread {
 	public DatagramSocket socket;
 	public byte[] buf= new byte[1024];
@@ -282,7 +286,6 @@ class HeartBeat extends Thread {
 					}
 				}
 			}
-			
 		} catch (IOException e) {
 			e.printStackTrace();
 			socket.close();

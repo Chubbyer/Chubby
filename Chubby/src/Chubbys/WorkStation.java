@@ -28,14 +28,15 @@ import Util.Timing;
 
 /*
  * author@Leung
- * 2017-05-27
+ * 2017-05-27,该类的目的是负责整个数据服务系统的稳定
+ * 旨在提高数据服务系统的容错能力
  */
 public class WorkStation {
 	private ServerSocket serverSocket = null;
 	private Socket socket = null;
 	private String status = SC.SERVER_OK;
-	private int port = 10001;// 监听端口号
-	private ArrayList<DataHost> hostList = new ArrayList<DataHost>();
+	private int port = 10001;// 默认的监听端口号
+	private ArrayList<DataHost> hostList = new ArrayList<DataHost>();//整个系统的服务器
 
 	public WorkStation(int port) {
 		// TODO Auto-generated constructor stub
@@ -53,7 +54,7 @@ public class WorkStation {
 			while (true) {
 				if (this.hostList.size() > 0) {
 					heartBeat.hostList = this.hostList;
-					// this.hostList = new ArrayList<DataHost>();
+					// this.hostList = null;
 				}
 				// 获得连接
 				accpetSocket = serverSocket.accept();
@@ -63,64 +64,45 @@ public class WorkStation {
 				if (oType.equals(SC.CLIENT_REQUEST) && this.hostList.size() > 0) {
 					// 客服机请求一个最优的服务器
 					ArrayList<String> hostInfo = new ArrayList<String>();
-					hostInfo.add(this.hostList.get(0).ip);
-					hostInfo.add(this.hostList.get(0).port + "");
+					if (this.hostList != null) {
+						hostInfo.add(this.hostList.get(0).ip);
+						hostInfo.add(this.hostList.get(0).port + "");
+						this.hostList.get(0).priority--;
+					} else {
+						hostInfo.add(ChubbyConfig.DEFAULT_MONGODB_IP);
+						hostInfo.add(ChubbyConfig.DEFAULT_MONGODB_PORT + "");
+					}
 					Net.sentData(accpetSocket, hostInfo);
 					continue;
 				}
 				if (oType.equals(SC.CHUBBYER_REPORT)) {
 					// 附加的数据，eg:{"ip":"192.168.10.23","port":10001,"priority":12}
 					String additional = receiveData.toString().substring(3);
-
-					try {
-						JSONObject jsonObj = new JSONObject(additional);
-						String ip = jsonObj.getString("ip");
-						System.out.println("收到" + ip + "加入Chubby系统的报告");
-						int port = jsonObj.getInt("port");
-						int priority = jsonObj.getInt("priority");
-						if (this.hostList.size()<1) {
-							this.hostList.add(new DataHost(ip, port, priority));
-						} else {
-							for (int i = 0; i < this.hostList.size(); i++) {
-								if (this.hostList.get(i).ip.equals(ip))
-									this.hostList.get(i).priority = priority;
-								else {
-									this.hostList.add(new DataHost(ip, port,
-											priority));
-									System.out.println("正在添加"
-											+ this.hostList.get(i).ip);
-								}
-							}
-						}
-						if (Net.sentData(accpetSocket, SC.CHUBBYER_REPORT))
-							System.out.println("   " + ip + "成功加入Chubby系统");
-						this.hostList = this.sortHostPriority(this.hostList);
-
-						continue;
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-						continue;
-					}
+					DataHost host = this.getDataHost(additional);
+					System.out.println("收到" + host.ip + "加入Chubby系统的报告");
+					this.hostList.add(host);
+					if (Net.sentData(accpetSocket, SC.CHUBBYER_REPORT))
+						System.out.println("   " + host.ip + "成功加入Chubby系统");
+					this.hostList = this.sortHostPriority(this.hostList);
+					continue;
 				}
 				if (oType.equals(SC.HEART_BEAT)) {
 					// 附加的数据，eg:{"ip":"192.168.10.23","port":10001,"priority":12}
 					String additional = receiveData.toString().substring(3);
-					Net.sentData(accpetSocket, SC.HEART_BEAT);
-					try {
-						JSONObject jsonObj = new JSONObject(additional);
-						String ip = jsonObj.getString("ip");
-						System.out.println("   收到" + ip + "的心跳测试报告");
-						int priority = jsonObj.getInt("priority");
+					DataHost host = this.getDataHost(additional);
+					if (Net.sentData(accpetSocket, SC.HEART_BEAT)
+							&& host != null) {
+						System.out.println("    收到" + host.ip + "的心跳测试报告");
 						for (int i = 0; i < this.hostList.size(); i++) {
-							if (this.hostList.get(i).ip.equals(ip))
-								this.hostList.get(i).priority = priority;
+							if (this.hostList.get(i).ip.equals(host.ip)) {
+								this.hostList.remove(i);
+								this.hostList.add(host);
+							} else {
+								this.hostList.get(i).priority--;
+							}
 						}
 						this.hostList = this.sortHostPriority(this.hostList);
-						continue;
-					} catch (JSONException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						heartBeat.hostList = this.hostList;
 						continue;
 					}
 				}
@@ -131,35 +113,62 @@ public class WorkStation {
 		}
 	}
 
+	public DataHost getDataHost(String hostString) {
+		JSONObject jsonObj;
+		try {
+			jsonObj = new JSONObject(hostString);
+			String ip = jsonObj.getString("ip");
+			int port = jsonObj.getInt("port");
+			int priority = jsonObj.getInt("priority");
+			return new DataHost(ip, port, priority);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/*
+	 * 对已登记的服务器按优先权排序，把优先权小于0的排除
+	 */
 	public ArrayList<DataHost> sortHostPriority(ArrayList<DataHost> hosts) {
 		ArrayList<DataHost> dataHosts = new ArrayList<DataHost>();
+		// 排除优先权小于0的主机
+		for (int i = 0; i < hosts.size(); i++) {
+			if (hosts.get(i).priority < 0) {
+				System.out.println("已将"+hosts.get(i).ip+"移除");
+				hosts.remove(i);
+			}
+		}
 		int maxIndex = 0;
 		int size = hosts.size();
-		for (int i = 0; i < size - 1; i++) {
-			// 每一次找到列表中priority最大的那个
-			double maxPriority = hosts.get(0).priority;
-			for (int j = 0; j < hosts.size(); j++) {
-				if (hosts.get(j).priority > maxPriority) {
-					maxPriority = hosts.get(j).priority;
-					maxIndex = j;
+		if (size > 0) {
+			for (int i = 0; i < size - 1; i++) {
+				// 每一次找到列表中priority最大的那个
+				double maxPriority = hosts.get(0).priority;
+				for (int j = 0; j < hosts.size(); j++) {
+					if (hosts.get(j).priority > maxPriority) {
+						maxPriority = hosts.get(j).priority;
+						maxIndex = j;
+					}
 				}
+				dataHosts.add(hosts.get(maxIndex));
+				hosts.remove(maxIndex);
+				maxIndex = 0;
 			}
-			dataHosts.add(hosts.get(maxIndex));
-			hosts.remove(maxIndex);
-			maxIndex = 0;
+			// 剩下的最后一个就是priority最大的那个
+			dataHosts.add(hosts.get(0));
 		}
-		// 剩下的最后一个就是priority最大的那个
-		dataHosts.add(hosts.get(0));
 		return dataHosts;
 	}
 
 	/*
-	 * 心跳测试，每隔1分钟发起对hostList的心跳测试，检测Chubby网络系统中存活的数据服务器主机
+	 * 心跳测试，每隔30秒发起对hostList的心跳测试，检测Chubby网络系统中存活的数据服务器主机
 	 * 通过UDP发送测试请求，数据服务器接受到后通过TCP返回报告
 	 */
 	public static void heartBeat(ArrayList<DataHost> hostList) {
 		String testIp = null;
-		int testPort;
+		// int testPort;
 		if (hostList != null) {
 			for (int i = 0; i < hostList.size(); i++) {
 				testIp = hostList.get(i).ip;
@@ -184,19 +193,20 @@ public class WorkStation {
 		DataHost host1 = new DataHost("109.12", 10001, 11);
 		DataHost host2 = new DataHost("109.12", 10002, 12);
 		DataHost host3 = new DataHost("109.12", 10003, 13);
-		DataHost host4 = new DataHost("109.12", 10004, 15);
+		DataHost host4 = new DataHost("109.12", 10004, -1);
 		ArrayList<DataHost> dataHosts = new ArrayList<DataHost>();
 		dataHosts.add(host1);
 		dataHosts.add(host2);
 		dataHosts.add(host3);
 		dataHosts.add(host4);
-		// dataHosts=WorkStation.sortHostPriority(dataHosts);
-		// for (DataHost dataHost : dataHosts) {
-		// System.out.println(dataHost.port);
-		// }
+//		WorkStation ws = new WorkStation(10000);
+//		dataHosts = ws.sortHostPriority(dataHosts);
+//		for (DataHost dataHost : dataHosts) {
+//			System.out.println(dataHost.port);
+//		}
 		// Net.sendDataByUDP("127.0.0.1", 9090, "hello");
-		WorkStation ws = new WorkStation(10000);
-		ws.action();
+		 WorkStation ws = new WorkStation(10000);
+		 ws.action();
 		// HeartBeat heartBeat = new HeartBeat(null, 5 * 1000);
 		// heartBeat.start();
 		// Thread.sleep(11000);
@@ -215,12 +225,13 @@ class DataHost {
 		this.priority = priority;
 	}
 }
-
+/*
+ * 用于开展心跳测试
+ */
 class HeartBeat extends Thread {
-
-	public ArrayList<DataHost> hostList;
+	public ArrayList<DataHost> hostList;//需要被测试的服务器
 	public Timing timing;
-	public long delay;
+	public long delay;//心跳测试的间隔时间
 
 	public HeartBeat(ArrayList<DataHost> hostList, long delay) {
 		// TODO Auto-generated constructor stub
@@ -234,13 +245,11 @@ class HeartBeat extends Thread {
 		public void timeUp() {
 			// TODO Auto-generated method stub
 
-			if (hostList != null) {
+			if (hostList!=null) {
 				System.out.println("发起心跳测试  " + (new Date()).toLocaleString());
 				WorkStation.heartBeat(hostList);
 			}
-			// System.out.println(hostList);
 		}
-
 	}
 
 	public void run() {
