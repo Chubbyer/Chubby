@@ -3,11 +3,17 @@ package Control;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
@@ -16,12 +22,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 
+import javax.security.auth.login.Configuration;
+
 import Module.Chubbyer;
 import Module.Host;
 import Module.OrderChubbyer;
 import Module.User;
 import Protocol.EC;
 import Protocol.SC;
+import Util.ChubbyConfig;
 import Util.MongoDBJDBC;
 import Util.Net;
 
@@ -30,16 +39,42 @@ import Util.Net;
  * 网络处理的服务端，响应客服机的数据请求，返回数据处理结果
  */
 public class SocketServer {
+	private String localHostName;
+	private String localIp;
+	public String dbIP = "localhost";// 目标数据库IP
+	public int dbPort = 27017;// 目标数据库端口
 	private ServerSocket serverSocket = null;
 	private Socket socket = null;
 	private String status = SC.SERVER_OK;
 	private int maxLinks = 10;// 最大可接受的连接数
-	private ArrayList<FutureTask> futureTasks = new ArrayList<FutureTask>();
 	// 监听端口号
 	private int port = 10001;
 
 	public SocketServer(int port) {
 		this.port = port;
+		try {
+			InetAddress addr = InetAddress.getLocalHost();
+			localIp = addr.getHostAddress().toString();// 获得本机IP
+			localHostName = addr.getHostName().toString();// 获得本机名称
+			MongoDBJDBC mongoer = new MongoDBJDBC("Log");
+			Date nowDate = new Date();
+			// 检查本机数据库服务是否启动并向本地数据库写入本次操作的日志
+			if (mongoer.writeLog(localHostName, nowDate.toString())) {
+				if (this.report())
+					this.monitor();
+			} else {
+				if (this.localMongoException() == false)
+					System.out.println("本机暂不能提供服务");
+			}
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("向WorkStation报告出错");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("向WorkStation报告出错");
+		}
 	}
 
 	// 监听连接请求，接受到任务请求后转发任务
@@ -53,12 +88,18 @@ public class SocketServer {
 		try {
 			// 建立连接
 			this.serverSocket = new ServerSocket(port);
+			Socket accpetSocket =null;
 			System.out.println("服务器已就绪");
+			DatagramSocket socket = new DatagramSocket(
+					ChubbyConfig.HEART_BEAT_PORT);
+			byte[] buf = new byte[1024];
+			DatagramPacket packet = new DatagramPacket(buf, buf.length);
+			HeartBeat heartBeat=new HeartBeat(socket, buf, packet,this.getIpInfo());
+			heartBeat.start();
 			while (true) {
+				
 				// 获得连接
-				Socket accpetSocket = new Socket();
 				accpetSocket = serverSocket.accept();
-
 				// 接收客户端发送内容
 				receiveData = Net.acceptData(accpetSocket);
 				System.out.println("当前可接受的连接数：" + this.maxLinks);
@@ -137,51 +178,73 @@ public class SocketServer {
 	}
 
 	/*
-	 * 发送或接受数据
+	 * 获得数据服务器的ip、port信息
 	 */
-	public void action(Socket accpetSocket) {
-		Object receiveData = null;
-		String sendData;
-
-		// 接收客户端发送内容
-		receiveData = Net.acceptData(accpetSocket);
-		System.out.println("端口：" + this.port + " 收到：" + receiveData);
-		// 解析出客户端请求的类型
-		String oType = receiveData.toString().substring(0, 3);
-		// System.out.println(oType);
-		if (oType.equals(SC.CHECK_CONNECTION)) {
-			// 客户端请求连接，发送本服务器的状态
-			Net.sentData(accpetSocket, this.status);
-			return;
-		}
-		// 所有的任务都从这里转发
-		if (oType.equals(EC.E_301) && this.status.equals(SC.SERVER_OK)) {
-			// 附加的数据
-			String additional = receiveData.toString().substring(3);
-			// 将本机的状态置为忙
-			this.status = SC.SERVER_BUSY;
-			// 启动EC.E_301所描述的任务
-			// Tasker taskE_301 = new Tasker(additional);
-			// FutureTask<Object> futureTask=new FutureTask<Object>(taskE_301);
-			// new Thread(futureTask).start();
-			ArrayList<String> al = new ArrayList<String>();
-			al.add("First");
-			al.add("Second");// this.status
-			Net.sentData(accpetSocket, al);
-		}
+	public String getIpInfo() {
+		String ipInfo="{\"ip\":\"" + this.localIp
+				+ "\",\"port\":" + this.port + ",\"priority\":" + this.maxLinks
+				+ "}";;
+		return ipInfo;
 	}
 
 	/*
-	 * 检查已就绪的处理机
+	 * 本地的MongoDB数据库出现异常时，切换到默认的MongoDB
 	 */
-	public int checkChubbyer() {
+	public boolean localMongoException() {
+		try {
+			System.out.println("本地数据库服务异常，正在切换至默认数据库服务器");
+			MongoDBJDBC mongoer = new MongoDBJDBC(
+					ChubbyConfig.DEFAULT_MONGODB_IP,
+					ChubbyConfig.DEFAULT_MONGODB_PORT, "Log");
+			Date nowDate = new Date();
+			if (mongoer.writeLog(localHostName, nowDate.toString())) {
+				System.out.println("成功切换至默认数据库服务器");
+				this.dbIP = ChubbyConfig.DEFAULT_MONGODB_IP;
+				this.dbPort = ChubbyConfig.DEFAULT_MONGODB_PORT;
+				// 重新报告
+				if (this.report()) {
+					return true;
+				}
+			} else {
+				System.out.println("切换失败");
+				return false;
+			}
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("向WorkStation报告出错");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			System.out.println("切换失败");
+		}
+		return false;
+	}
 
-		return 0;
+	/*
+	 * 向WorkStation报告本机能提供数据服务
+	 */
+	public boolean report() throws UnknownHostException, IOException {
+		System.out.println("正在向WorkStation报告本机状态并申请加入Chubby系统");
+		while (true) {
+			this.socket = new Socket(ChubbyConfig.STATION_IP,
+					ChubbyConfig.STATION_PORT);
+			String data = SC.CHUBBYER_REPORT + this.getIpInfo();
+			Net.sentData(socket, data);// 发送表示请求连接的字段
+			String returnStr = (String) Net.acceptData(socket);// 收到服务端的回应
+			if (returnStr.equals(SC.CHUBBYER_REPORT)) {
+				System.out.println("  加入Chubby系统成功");
+				return true;
+			}
+		}
 	}
 
 	public static void main(String[] args) {
-		SocketServer chubbyer = new SocketServer(10001);
-		chubbyer.monitor();
+		SocketServer chubbyer = new SocketServer(10011);
+		// chubbyer.monitor();
 		// SocketServer chubbyer1=new SocketServer(10001);
 		// chubbyer1.monitor();
 		// SocketServer chubbyer2=new SocketServer(10002);
@@ -189,12 +252,42 @@ public class SocketServer {
 	}
 }
 
-class Session {
-	public Tasker tasker;
-	public FutureTask<Object> futureTask;
-
-	public Session(Tasker tasker, FutureTask<Object> futureTask) {
+class HeartBeat extends Thread {
+	public DatagramSocket socket;
+	public byte[] buf= new byte[1024];
+	public DatagramPacket packet = new DatagramPacket(buf, buf.length);
+	public String info;
+	public HeartBeat(DatagramSocket socket,byte[] buf,DatagramPacket packet,String info) {
 		// TODO Auto-generated constructor stub
+		this.socket=socket;
+		this.buf=buf;
+		this.packet=packet;
+		this.info=info;
+	}
 
+	@Override
+	public void run() {
+		try {			
+			boolean flag = true;
+			while (flag) {
+				this.socket.receive(this.packet);
+				String receiveByUDP = new String(buf, 0, packet.getLength());
+				if (receiveByUDP.equals(SC.HEART_BEAT)) {
+					System.out.println("收到心跳测试请求");
+					Socket socket = new Socket(ChubbyConfig.STATION_IP,
+							ChubbyConfig.STATION_PORT);
+					String data = SC.HEART_BEAT + info;
+					Net.sentData(socket, data);// 发送表示请求连接的字段
+					String returnStr = (String) Net.acceptData(socket);// 收到服务端的回应
+					if (returnStr.equals(SC.HEART_BEAT)) {
+						System.out.println("  心跳测试:向WorkStation报告本机状态成功");
+					}
+				}
+			}
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+			socket.close();
+		}
 	}
 }

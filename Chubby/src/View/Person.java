@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import Control.SocketClient;
 import Module.User;
+import Util.ChubbyConfig;
 import Util.MongoDBJDBC;
 
 public class Person extends HttpServlet {
@@ -41,7 +42,7 @@ public class Person extends HttpServlet {
 		String serach = request.getParameter("search");
 		
 		System.out.println("Serach:" + serach);
-		MongoDBJDBC mongoer = new MongoDBJDBC("User");
+		MongoDBJDBC mongoer = new MongoDBJDBC(ChubbyConfig.DEFAULT_MONGODB_IP,ChubbyConfig.DEFAULT_MONGODB_PORT,"User");
 		User user = mongoer.findUserInfo(serach);
 		if (user != null){
 			//转到数据展示的页面

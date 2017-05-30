@@ -24,8 +24,8 @@ import static com.mongodb.client.model.Updates.*;
  * 操作不同的数据库要重新连接
  */
 public class MongoDBJDBC {
-	public static String ip = "localhost";
-	public static int port = 27017;
+	public String ip = "localhost";
+	public int port = 27017;
 	// public String dbName = "Leung";
 	public MongoClient mongoClient = null;// mongodb 服务
 	public String dbName;
@@ -34,14 +34,20 @@ public class MongoDBJDBC {
 		// TODO Auto-generated constructor stub
 		this.dbName = host;
 	}
+	public MongoDBJDBC(String ip,int port,String host) {
+		// TODO Auto-generated constructor stub
+		this.ip=ip;
+		this.port=port;
+		this.dbName=host;
+	}
 
 	// 连接到MongoDB数据库
 	public boolean connectionMongoDB() {
 		try {
 			// 连接到 mongodb 服务
 			@SuppressWarnings("resource")
-			MongoClient mongoClient = new MongoClient(MongoDBJDBC.ip,
-					MongoDBJDBC.port);
+			MongoClient mongoClient = new MongoClient(this.ip,
+					this.port);
 			this.mongoClient = mongoClient;
 			return true;
 		} catch (Exception e) {
@@ -57,29 +63,34 @@ public class MongoDBJDBC {
 	}
 
 	// 在指定的数据库下创建MonngoDB集合
-	public void createCollection(String colleName) {
-		if (this.connectionMongoDB() && this.mongoClient != null) {
-			// 连接到数据库并创建集合
-			this.mongoClient.getDatabase(dbName).createCollection(colleName);
-			this.writeLog("创建了集合" + colleName);
-			this.closeMongoDB();
-		} else {
-			System.out.println("MongoDB服务未打开");
-		}
-	}
+//	public void createCollection(String colleName) {
+//		if (this.connectionMongoDB() && this.mongoClient != null) {
+//			// 连接到数据库并创建集合
+//			this.mongoClient.getDatabase(dbName).createCollection(colleName);
+//			this.writeLog("创建了集合" + colleName);
+//			this.closeMongoDB();
+//		} else {
+//			System.out.println("MongoDB服务未打开");
+//		}
+//	}
 
 	// 写操作日志到MongoDB数据库的myLogs集合中
-	private void writeLog(String info) {
+	public boolean writeLog(String author,String info)throws  com.mongodb.MongoSocketOpenException{
 		try {
+			this.connectionMongoDB();
 			String nowTime = TimeParser.getNowTimeStr();
 			String logString = nowTime + " " + info;
-			Document document = new Document("author", dbName).append("info",
+			Document document = new Document("author", author).append("info",
 					logString);
 			MongoCollection<Document> collection = this.mongoClient
 					.getDatabase(dbName).getCollection("myLogs");
 			collection.insertOne(document);
+			this.closeMongoDB();
+			return true;
 		} catch (Exception e) {
 			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			this.closeMongoDB();
+			return false;
 		}
 	}
 
@@ -306,8 +317,10 @@ public class MongoDBJDBC {
 		// System.out.println("qq");
 		// mongoer.closeMongoDB();
 
-		MongoDBJDBC mongoer = new MongoDBJDBC("User");
-		mongoer.updateUserInfo("Leung", "LogLines", 15000);
+		MongoDBJDBC mongoer = new MongoDBJDBC("Log");
+		//mongoer.updateUserInfo("Leung", "LogLines", 15000);
+		//mongoer.connectionMongoDB();
+		mongoer.writeLog("Leung","2017-05-28 10:00:00");
 		// System.out.println(mongoer.findUserInfo("Leung").getName());
 	}
 }

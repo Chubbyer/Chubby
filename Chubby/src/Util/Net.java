@@ -6,6 +6,9 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Date;
 
@@ -26,7 +29,7 @@ public class Net {
 			ObjectOutputStream oos = new ObjectOutputStream(os);
 			oos.writeObject(data);
 			oos.flush();
-			//oos.close();
+			// oos.close();
 			// os.write(((String) data).getBytes());
 			return true;
 		} catch (IOException e) {
@@ -45,7 +48,7 @@ public class Net {
 			// byte[] b = new byte[1024];
 			// int n = is.read(b);
 			// return new String(b, 0, n);
-			//ois.close();//TCP网络通信是一个保持连接的通信，不能关
+			// ois.close();//TCP网络通信是一个保持连接的通信，不能关
 			return obj;
 		} catch (IOException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -57,8 +60,50 @@ public class Net {
 		// System.out.println("服务器反馈：" + new String(b, 0, n));
 	}
 
+	/*
+	 * 通过UDP向指定地址和端口发送数据
+	 */
+	public static void sendDataByUDP(String ip, int port, String info) {
+		try {
+			DatagramSocket socket = new DatagramSocket();
+			// BufferedReader keyReader = new BufferedReader(new
+			// InputStreamReader(System.in));
+			DatagramPacket packet = null;
+			packet = new DatagramPacket(info.getBytes(),
+					info.getBytes().length, InetAddress.getByName(ip), port);
+			socket.send(packet);
+			socket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/*
+	 * 通过UDP在指定端口接受数据
+	 */
+	public static String receiveDataByUDP(int port) {
+		try {
+			DatagramSocket socket = new DatagramSocket(port);
+			byte[] buf = new byte[1024];
+			DatagramPacket packet = new DatagramPacket(buf, buf.length);
+			boolean flag = true;
+			while (flag) {
+				socket.receive(packet);
+				String receive = new String(buf, 0, packet.getLength());
+				if (receive != null) {
+					socket.close();
+					return receive;
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	public static void main(String[] args) {
 		Date d = new Date();
-		System.out.println(System.currentTimeMillis());
+		System.out.println(Net.receiveDataByUDP(9090));
+
 	}
 }
