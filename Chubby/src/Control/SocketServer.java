@@ -65,6 +65,8 @@ public class SocketServer {
 			} else {
 				if (this.localMongoException() == false)
 					System.out.println("本机暂不能提供服务");
+				else
+					this.monitor();
 			}
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
@@ -90,11 +92,7 @@ public class SocketServer {
 			this.serverSocket = new ServerSocket(port);
 			Socket accpetSocket =null;
 			System.out.println("服务器已就绪");
-			DatagramSocket socket = new DatagramSocket(
-					ChubbyConfig.HEART_BEAT_PORT);
-			byte[] buf = new byte[1024];
-			DatagramPacket packet = new DatagramPacket(buf, buf.length);
-			HeartBeat heartBeat=new HeartBeat(socket, buf, packet,this.getIpInfo());
+			HeartBeat heartBeat=new HeartBeat(this.getIpInfo());
 			heartBeat.start();
 			while (true) {
 				
@@ -203,6 +201,9 @@ public class SocketServer {
 				// 重新报告
 				if (this.report()) {
 					return true;
+				}else {
+					System.out.println("向WorkStation报告出错");
+					return false;
 				}
 			} else {
 				System.out.println("切换失败");
@@ -255,30 +256,22 @@ public class SocketServer {
  * 参加心跳测试的类
  */
 class HeartBeat extends Thread {
-	public DatagramSocket socket;
-	public byte[] buf= new byte[1024];
-	public DatagramPacket packet = new DatagramPacket(buf, buf.length);
+	
 	public String info;
-	public HeartBeat(DatagramSocket socket,byte[] buf,DatagramPacket packet,String info) {
+	public HeartBeat(String info) {
 		// TODO Auto-generated constructor stub
-		this.socket=socket;
-		this.buf=buf;
-		this.packet=packet;
 		this.info=info;
 	}
-
 	@Override
 	public void run() {
 		try {			
-			boolean flag = true;
-			while (flag) {
-				this.socket.receive(this.packet);
-				String receiveByUDP = new String(buf, 0, packet.getLength());
+			while (true) {
+				String receiveByUDP = Net.receiveDataByUDP(ChubbyConfig.HEART_BEAT_PORT);
 				if (receiveByUDP.equals(SC.HEART_BEAT)) {
 					System.out.println("收到心跳测试请求");
 					Socket socket = new Socket(ChubbyConfig.STATION_IP,
 							ChubbyConfig.STATION_PORT);
-					String data = SC.HEART_BEAT + info;
+					String data = SC.HEART_BEAT + this.info;
 					Net.sentData(socket, data);// 发送表示请求连接的字段
 					String returnStr = (String) Net.acceptData(socket);// 收到服务端的回应
 					if (returnStr.equals(SC.HEART_BEAT)) {
@@ -288,7 +281,6 @@ class HeartBeat extends Thread {
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
-			socket.close();
 		}
 	}
 }

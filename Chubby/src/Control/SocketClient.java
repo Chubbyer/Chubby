@@ -128,9 +128,9 @@ public class SocketClient implements Callable<Object> {
 						.getAvailableHost();
 				if (availableHost != null) {
 					// 请求的服务器可以接受任务，发送具体的任务类型
-					this.serverIP=availableHost.get(0);
-					this.port=Integer.parseInt(availableHost.get(1));
-					System.out.println("可用："+this.serverIP+" "+this.port);
+					this.serverIP = availableHost.get(0);
+					this.port = Integer.parseInt(availableHost.get(1));
+					System.out.println("可用：" + this.serverIP + " " + this.port);
 					String data = EC.E_301 + id;
 					this.socket = new Socket(this.serverIP, this.port);
 					Net.sentData(this.socket, data);
@@ -156,25 +156,37 @@ public class SocketClient implements Callable<Object> {
 
 	public static void main(String[] args) {
 		SocketClient sClient = new SocketClient();
-		// System.out.println(sClient.checkConnection());
-		@SuppressWarnings("unchecked")
-		ArrayList<String> chubbyers = (ArrayList<String>) sClient
-				.getOneOverview("Leung");
-		System.out.println(chubbyers.size());
-		// for (int i = 0; i < 50; i++) {
-		// System.out.println(chubbyers.get(i));
-		// }
-		ArrayList<Chubbyer> chubbyerList = new ArrayList<Chubbyer>();
-		// 得到每天的开关机时点
-		chubbyerList = ChubbyerParser.getUseTimeScatter(chubbyers);
-		for (int i = 0; i < chubbyerList.size() / 2; i++) {
-			System.out.print("OP:" + chubbyerList.get(i).day + " ");
-			System.out.println(chubbyerList.get(i).point);
-			System.out.print("CP:"
-					+ chubbyerList.get(i + chubbyerList.size() / 2).day + " ");
-			System.out
-					.println(chubbyerList.get(i + chubbyerList.size() / 2).point);
+
+		try {
+			System.out.println(sClient.getAvailableHost());
+			Thread.sleep(2000);
+			System.out.println(sClient.getAvailableHost());
+			Thread.sleep(2000);
+			System.out.println(sClient.getAvailableHost());
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+
+		// System.out.println(sClient.checkConnection());
+		// @SuppressWarnings("unchecked")
+		// ArrayList<String> chubbyers = (ArrayList<String>) sClient
+		// .getOneOverview("Leung");
+		// System.out.println(chubbyers.size());
+		// // for (int i = 0; i < 50; i++) {
+		// // System.out.println(chubbyers.get(i));
+		// // }
+		// ArrayList<Chubbyer> chubbyerList = new ArrayList<Chubbyer>();
+		// // 得到每天的开关机时点
+		// chubbyerList = ChubbyerParser.getUseTimeScatter(chubbyers);
+		// for (int i = 0; i < chubbyerList.size() / 2; i++) {
+		// System.out.print("OP:" + chubbyerList.get(i).day + " ");
+		// System.out.println(chubbyerList.get(i).point);
+		// System.out.print("CP:"
+		// + chubbyerList.get(i + chubbyerList.size() / 2).day + " ");
+		// System.out
+		// .println(chubbyerList.get(i + chubbyerList.size() / 2).point);
+		// }
 		// System.out.println(sClient.getOneOverview("Leung"));
 
 	}

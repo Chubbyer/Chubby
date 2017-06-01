@@ -202,8 +202,9 @@ public class ChubbyerParser {
 		}
 		if (open <= 6 && 12 < close && close <= 19) {
 			// 开机在6点以前，关机在12点与19点之间
-			morning += 12 - open;
+			morning += 6;
 			aftermoon += close - 12;
+			evening+=6-open;
 		}
 		if (open <= 6 && 19 < close && close <= 24) {
 			// 开机在6点以前，关机在19点与24点之间
@@ -331,28 +332,28 @@ public class ChubbyerParser {
 	}
 
 	public static void main(String[] args) {
-//		double[] d = ChubbyerParser.getDayHoursDistribut(0, 24);
+		double[] d = ChubbyerParser.getDayHoursDistribut(0, 24);
 		// System.out.println("M:" + d[0]);
 		// System.out.println("A:" + d[1]);
 		// System.out.println("E:" + d[2]);
-//		String string = "{\"ot\":\"2017-05-10 21:11:10\",\"ct\":\"2017-05-12 12:11:10\"}";
-//		ArrayList<String> al = new ArrayList<String>();
-//		al.add(string);
-//		d = ChubbyerParser.getUseHoursDistribut(al);
-//		System.out.println("M:" + d[0]);
-//		System.out.println("A:" + d[1]);
-//		System.out.println("E:" + d[2]);
-		String string1="{\"name\":\"梁健\",\"hours\":3.2}";
-		String string2="{\"name\":\"Leung\",\"hours\":2.2}";
-		String string3="{\"name\":\"梁健\",\"hours\":4.2}";
-		ArrayList<String> al=new ArrayList<String>();
-		al.add(string1);
-		al.add(string2);
-		al.add(string3);
-		ArrayList<Chubbyer> chubbyers=new ArrayList<Chubbyer>();
-		chubbyers=ChubbyerParser.sortChubbyersForRanking(al);
-		for (Chubbyer chubbyer : chubbyers) {
-			System.out.println("Name:"+chubbyer.day+" Hours:"+chubbyer.point);
-		}
+		String string = "{\"ot\":\"2017-05-12 11:11:10\",\"ct\":\"2017-05-12 12:11:10\"}";
+		ArrayList<String> al = new ArrayList<String>();
+		al.add(string);
+		ArrayList<Double>dd = ChubbyerParser.getUseHoursDistribut(al);
+		System.out.println("M:" + dd.get(0));
+		System.out.println("A:" + dd.get(1));
+		System.out.println("E:" + dd.get(2));
+//		String string1="{\"name\":\"梁健\",\"hours\":3.2}";
+//		String string2="{\"name\":\"Leung\",\"hours\":2.2}";
+//		String string3="{\"name\":\"梁健\",\"hours\":4.2}";
+//		ArrayList<String> al=new ArrayList<String>();
+//		al.add(string1);
+//		al.add(string2);
+//		al.add(string3);
+//		ArrayList<Chubbyer> chubbyers=new ArrayList<Chubbyer>();
+//		chubbyers=ChubbyerParser.sortChubbyersForRanking(al);
+//		for (Chubbyer chubbyer : chubbyers) {
+//			System.out.println("Name:"+chubbyer.day+" Hours:"+chubbyer.point);
+//		}
 	}
 }

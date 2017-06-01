@@ -12,6 +12,8 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Date;
 
+import Control.SocketServer;
+
 /*
  * @Leung
  * 用于网络数据交换
@@ -86,15 +88,15 @@ public class Net {
 			DatagramSocket socket = new DatagramSocket(port);
 			byte[] buf = new byte[1024];
 			DatagramPacket packet = new DatagramPacket(buf, buf.length);
-			boolean flag = true;
-			while (flag) {
+			String receive = null;
+			while (true) {
 				socket.receive(packet);
-				String receive = new String(buf, 0, packet.getLength());
-				if (receive != null) {
-					socket.close();
-					return receive;
-				}
+				receive = new String(buf, 0, packet.getLength());
+				if (receive != null)
+					break;
 			}
+			socket.close();
+			return receive;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -103,7 +105,8 @@ public class Net {
 
 	public static void main(String[] args) {
 		Date d = new Date();
-		//System.out.println(Net.receiveDataByUDP(9090));
-		Net.sendDataByUDP("172.16.70.201", 9090, "hello");
+		// System.out.println(Net.receiveDataByUDP(9090));
+		// Net.sendDataByUDP("172.16.70.201", 9090, "hello");
+		SocketServer chubbyer2 = new SocketServer(10012);
 	}
 }

@@ -3,23 +3,11 @@ package Chubbys;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import Control.Analyzer;
-import Module.Chubbyer;
-import Module.OrderChubbyer;
-import Protocol.EC;
 import Protocol.SC;
 import Util.ChubbyConfig;
 import Util.Net;
@@ -36,7 +24,7 @@ public class WorkStation {
 	private Socket socket = null;
 	private String status = SC.SERVER_OK;
 	private int port = 10001;// 默认的监听端口号
-	private ArrayList<DataHost> hostList = new ArrayList<DataHost>();//整个系统的服务器
+	private ArrayList<DataHost> hostList = new ArrayList<DataHost>();// 整个系统的服务器
 
 	public WorkStation(int port) {
 		// TODO Auto-generated constructor stub
@@ -80,10 +68,17 @@ public class WorkStation {
 					String additional = receiveData.toString().substring(3);
 					DataHost host = this.getDataHost(additional);
 					System.out.println("收到" + host.ip + "加入Chubby系统的报告");
+					//若该host已在hostList之中，则将已有的host移除
+					for (int i = 0; i < this.hostList.size(); i++) {
+						if(host.ip.equals(hostList.get(i).ip)){
+							this.hostList.remove(i);
+						}
+					}
 					this.hostList.add(host);
 					if (Net.sentData(accpetSocket, SC.CHUBBYER_REPORT))
 						System.out.println("   " + host.ip + "成功加入Chubby系统");
 					this.hostList = this.sortHostPriority(this.hostList);
+					heartBeat.hostList=this.hostList;//更新心跳测试列表
 					continue;
 				}
 				if (oType.equals(SC.HEART_BEAT)) {
@@ -95,9 +90,10 @@ public class WorkStation {
 						System.out.println("    收到" + host.ip + "的心跳测试报告");
 						for (int i = 0; i < this.hostList.size(); i++) {
 							if (this.hostList.get(i).ip.equals(host.ip)) {
-								this.hostList.remove(i);
-								this.hostList.add(host);
+								//更新优先权
+								this.hostList.get(i).priority=host.priority;
 							} else {
+								//降低优先权
 								this.hostList.get(i).priority--;
 							}
 						}
@@ -136,7 +132,7 @@ public class WorkStation {
 		// 排除优先权小于0的主机
 		for (int i = 0; i < hosts.size(); i++) {
 			if (hosts.get(i).priority < 0) {
-				System.out.println("已将"+hosts.get(i).ip+"移除");
+				System.out.println("已将" + hosts.get(i).ip + "移除");
 				hosts.remove(i);
 			}
 		}
@@ -175,7 +171,9 @@ public class WorkStation {
 				// testPort = hostList.get(i).port;
 				Net.sendDataByUDP(testIp, ChubbyConfig.HEART_BEAT_PORT,
 						SC.HEART_BEAT);
-				System.out.println("    已向" + testIp + "发起心跳测试");
+				System.out.println("    已向IP：" + testIp + "   端口："
+						+ hostList.get(i).port + "  发起心跳测试   Priority:"
+						+ hostList.get(i).priority);
 			}
 		}
 	}
@@ -199,14 +197,14 @@ public class WorkStation {
 		dataHosts.add(host2);
 		dataHosts.add(host3);
 		dataHosts.add(host4);
-//		WorkStation ws = new WorkStation(10000);
-//		dataHosts = ws.sortHostPriority(dataHosts);
-//		for (DataHost dataHost : dataHosts) {
-//			System.out.println(dataHost.port);
-//		}
-		// Net.sendDataByUDP("127.0.0.1", 9090, "hello");
-		 WorkStation ws = new WorkStation(10000);
-		 ws.action();
+		// WorkStation ws = new WorkStation(10000);
+		// dataHosts = ws.sortHostPriority(dataHosts);
+		// for (DataHost dataHost : dataHosts) {
+		// System.out.println(dataHost.port);
+		// }
+		 //Net.sendDataByUDP("172.16.70.201", 9090, "sss");
+		WorkStation ws = new WorkStation(10000);
+		ws.action();
 		// HeartBeat heartBeat = new HeartBeat(null, 5 * 1000);
 		// heartBeat.start();
 		// Thread.sleep(11000);
@@ -225,13 +223,14 @@ class DataHost {
 		this.priority = priority;
 	}
 }
+
 /*
  * 用于开展心跳测试
  */
 class HeartBeat extends Thread {
-	public ArrayList<DataHost> hostList;//需要被测试的服务器
+	public ArrayList<DataHost> hostList;// 需要被测试的服务器
 	public Timing timing;
-	public long delay;//心跳测试的间隔时间
+	public long delay;// 心跳测试的间隔时间
 
 	public HeartBeat(ArrayList<DataHost> hostList, long delay) {
 		// TODO Auto-generated constructor stub
@@ -245,7 +244,7 @@ class HeartBeat extends Thread {
 		public void timeUp() {
 			// TODO Auto-generated method stub
 
-			if (hostList!=null) {
+			if (hostList != null) {
 				System.out.println("发起心跳测试  " + (new Date()).toLocaleString());
 				WorkStation.heartBeat(hostList);
 			}
