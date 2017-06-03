@@ -37,7 +37,7 @@ public class WorkStation {
 			this.serverSocket = new ServerSocket(port);
 			System.out.println("工作站服务器已就绪");
 			Socket accpetSocket = null;
-			HeartBeat heartBeat = new HeartBeat(null, 5 * 1000);
+			HeartBeat heartBeat = new HeartBeat(null, 30 * 1000);
 			heartBeat.start();
 			while (true) {
 				if (this.hostList.size() > 0) {
@@ -227,7 +227,7 @@ class DataHost {
 /*
  * 用于开展心跳测试
  */
-class HeartBeat extends Thread {
+ class HeartBeat extends Thread {
 	public ArrayList<DataHost> hostList;// 需要被测试的服务器
 	public Timing timing;
 	public long delay;// 心跳测试的间隔时间

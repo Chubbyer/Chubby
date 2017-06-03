@@ -40,7 +40,7 @@ body {
 	z-index: 10;
 	position: absolute;
 	left: 50%;
-	top: 30%;
+	top: 50%;
 	transform: translateX(-50%) translateY(-50%);
 	font-family: "Montserrat";
 	text-align: center;
@@ -124,14 +124,6 @@ input::-webkit-input-placeholder {
 }
 
 .hotTopic {
-	z-index: 10;
-	position: absolute;
-	left: 50%;
-	top: 50%;
-	transform: translateX(-50%) translateY(-50%);
-	font-family: "Montserrat";
-	text-align: center;
-	width: 100%;
 }
 .btntopic{
 	filter:alpha(opacity:80); opacity:0.8;  -moz-opacity:0.8;-khtml-opacity: 0.8

@@ -34,7 +34,7 @@ public class Overview extends HttpServlet {
 	/**
 	 * The doGet method of the servlet. <br>
 	 */
-	@SuppressWarnings("unused")
+	@SuppressWarnings({ "unused", "unchecked" })
 	public void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
@@ -55,41 +55,44 @@ public class Overview extends HttpServlet {
 			}
 			ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
 			ArrayList<String> chubbyerString = new ArrayList<String>();
-			TimeOutHandle timeOutHandle = new TimeOutHandle(out, 15 * 1000);
-			timeOutHandle.startTiming();
-			for (int i = 0; i < threadNum; i++) {
-				try {
+			// TimeOutHandle timeOutHandle = new TimeOutHandle(out, 15 * 1000);
+			// timeOutHandle.start();
+			String jsonStr = "{\"names\":[],\"hours\":[]}";
+			try {
+				for (int i = 0; i < threadNum; i++) {
 					// 获得已完成任务的子线程的结果,每个线程返回的是一批同学的PC平均使用时间
 					// 结果是基于JSON格式的描述
 					Future<Object> future = comp.take();
 					@SuppressWarnings("unchecked")
 					ArrayList<String> chubbyer = (ArrayList<String>) future
 							.get();
-					chubbyerString.addAll(chubbyer);
-				} catch (InterruptedException | ExecutionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					if (chubbyer != null)
+						chubbyerString.addAll(chubbyer);
 				}
-			}
-			timeOutHandle.closeTiming();
-			if (chubbyerString != null) {
-				// 按使用时间排序并加工成Chubbyer对象的列表
-				chubbyers = ChubbyerParser
-						.sortChubbyersForRanking(chubbyerString);
-				// 把ArrayList转换成JSON
-				String jsonStr = null;
-				ArrayList<String> names = new ArrayList<String>();
-				ArrayList<Double> hours = new ArrayList<Double>();
-				for (Chubbyer chubbyer : chubbyers) {
-					names.add("\"" + chubbyer.day + "\"");
-					hours.add(chubbyer.point);
+				// timeOutHandle.closeTiming();
+				if (chubbyerString.size() > 0) {
+					// 按使用时间排序并加工成Chubbyer对象的列表
+					chubbyers = ChubbyerParser
+							.sortChubbyersForRanking(chubbyerString);
+					// 把ArrayList转换成JSON
+					ArrayList<String> names = new ArrayList<String>();
+					ArrayList<Double> hours = new ArrayList<Double>();
+					for (Chubbyer chubbyer : chubbyers) {
+						names.add("\"" + chubbyer.day + "\"");
+						hours.add(chubbyer.point);
+					}
+					jsonStr = "{\"names\":" + names + ",\"hours\":" + hours
+							+ "}";
+					// 向前端发送JSON串
+					// out.println(jsonStr);
+				} else {
+					System.out.println("EC.E_302未获得数据");
 				}
-				jsonStr = "{" + "\"names\"" + ":" + names + "," + "\"hours\""
-						+ ":" + hours + "}";
-				// 向前端发送JSON串
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
 				out.println(jsonStr);
-			} else {
-				out.println("null");
 			}
 		}
 		// 获得所有同学的开关机时点
@@ -100,40 +103,46 @@ public class Overview extends HttpServlet {
 			}
 			ArrayList<String> openPoints = new ArrayList<String>();
 			ArrayList<String> closePoints = new ArrayList<String>();
-			TimeOutHandle timeOutHandle = new TimeOutHandle(out, 15 * 1000);
-			timeOutHandle.startTiming();
-			for (int i = 0; i < threadNum; i++) {
-				try {
+			// TimeOutHandle timeOutHandle = new TimeOutHandle(out, 15 * 1000);
+			// timeOutHandle.start();
+			String jsonStr = "{\"openPoints\":[],\"closePoints\":[]}";
+			try {
+				for (int i = 0; i < threadNum; i++) {
+
 					// 获得已完成任务的子线程的结果,每个线程返回的是一批同学的PC平均使用时间
 					// 结果是基于JSON格式的描述
 					Future<Object> future = comp.take();
-					@SuppressWarnings("unchecked")
-					ArrayList<String> chubbyerString = (ArrayList<String>) future
+					
+					ArrayList<String> chubbyerString = new ArrayList<String>();
+					chubbyerString = (ArrayList<String>) future
 							.get();
-					timeOutHandle.closeTiming();
-					for (int j = 0; j < chubbyerString.size(); j++) {
-						if (i < chubbyerString.size() / 2) {
-							// 前半部分的数据是开机的节点
-							openPoints.add(chubbyerString.get(i));
-						} else {
-							// 后半部分的数据是关机的节点
-							closePoints.add(chubbyerString.get(i));
+					// timeOutHandle.closeTiming();
+					if (chubbyerString!=null) {
+						for (int j = 0; j < chubbyerString.size(); j++) {
+							if (i < chubbyerString.size() / 2) {
+								// 前半部分的数据是开机的节点
+								openPoints.add(chubbyerString.get(i));
+							} else {
+								// 后半部分的数据是关机的节点
+								closePoints.add(chubbyerString.get(i));
+							}
 						}
 					}
-				} catch (InterruptedException | ExecutionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
-			}
-			// 把ArrayList转换成JSON
-			if (openPoints.size() > 0 && closePoints.size() > 0) {
-				String jsonStr = null;
-				jsonStr = "{" + "\"openPoints\":" + openPoints + ","
-						+ "\"closePoints\":" + closePoints + "}";
-				// 向前端发送JSON串
+				// 把ArrayList转换成JSON
+				if (openPoints.size() > 0 && closePoints.size() > 0) {
+					jsonStr = "{\"openPoints\":" + openPoints
+							+ ",\"closePoints\":" + closePoints + "}";
+					// 向前端发送JSON串
+					// out.println(jsonStr);
+				} else
+					System.out.println("EC.E_303未获取到数据");
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
 				out.println(jsonStr);
-			}else
-				out.println("null");
+			}
 		}
 		out.flush();
 		out.close();

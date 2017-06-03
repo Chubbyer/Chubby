@@ -48,6 +48,7 @@ public class Person extends HttpServlet {
 		if (user != null) {
 			// 转到数据展示的页面
 			request.getSession().setAttribute("serachCondition", serach);
+			request.setAttribute("useName", user.getName());
 			request.getRequestDispatcher("Person.jsp").forward(request,
 					response);
 		} else {

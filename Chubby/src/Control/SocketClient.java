@@ -72,7 +72,6 @@ public class SocketClient implements Callable<Object> {
 					.getOneOverview(serCondition);
 			ArrayList<Double> useHours = ChubbyerParser
 					.getUseHoursDistribut(chubbyerString);
-			System.out.println("SC:" + useHours);
 			return useHours;
 		}
 		if (this.taskType.equals(EC.E_301_3)) {
@@ -85,13 +84,13 @@ public class SocketClient implements Callable<Object> {
 			System.out.println("SocketClient已返回数据");
 			return chubbyers;
 		}
-
 		return null;
 	}
 
 	// 检查与服务器的连接
 	public Object getAvailableHost() {
 		Object returnStr = null;
+		int requestTimes = 5;
 		while (true) {
 			try {
 				String serverIP = ChubbyConfig.STATION_IP;
@@ -105,12 +104,20 @@ public class SocketClient implements Callable<Object> {
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
 				// e.printStackTrace();
-				System.out.println("该服务器未启用");
+				requestTimes--;
+				System.out.println("该工作站未启用");
+				if (requestTimes < 0) {
+					break;
+				}
 				continue;
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				// e.printStackTrace();
-				System.out.println("该服务器未启用");
+				requestTimes--;
+				System.out.println("该工作站未启用");
+				if (requestTimes < 0) {
+					break;
+				}
 				continue;
 			}
 		}
@@ -121,24 +128,23 @@ public class SocketClient implements Callable<Object> {
 	public Object getOneOverview(String id) {
 		// 当前服务器（初始适配的服务器）就绪
 		try {
-			for (int i = 0; i < HostList.hostsCount; i++) {
-				// 从工作组获得可用的服务器请求
-				@SuppressWarnings("unchecked")
-				ArrayList<String> availableHost = (ArrayList<String>) this
-						.getAvailableHost();
-				if (availableHost != null) {
-					// 请求的服务器可以接受任务，发送具体的任务类型
-					this.serverIP = availableHost.get(0);
-					this.port = Integer.parseInt(availableHost.get(1));
-					System.out.println("可用：" + this.serverIP + " " + this.port);
-					String data = EC.E_301 + id;
-					this.socket = new Socket(this.serverIP, this.port);
-					Net.sentData(this.socket, data);
-					System.out.println("已发送请求，正在等待接受数据···");
-					return Net.acceptData(this.socket);
-				} else {
-					System.out.println("未接受到回应");
-				}
+			// 从工作组获得可用的服务器请求
+			@SuppressWarnings("unchecked")
+			ArrayList<String> availableHost = (ArrayList<String>) this
+					.getAvailableHost();
+			if (availableHost != null) {
+				// 请求的服务器可以接受任务，发送具体的任务类型
+				this.serverIP = availableHost.get(0);
+				this.port = Integer.parseInt(availableHost.get(1));
+				System.out.println("可用：" + this.serverIP + " " + this.port);
+				String data = EC.E_301 + id;
+				this.socket = new Socket(this.serverIP, this.port);
+				Net.sentData(this.socket, data);
+				System.out.println("已发送请求，正在等待接受数据···");
+				return Net.acceptData(this.socket);
+			} else {
+				System.out.println("未找到可用的数据服务器");
+				return null;
 			}
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
@@ -151,7 +157,6 @@ public class SocketClient implements Callable<Object> {
 			System.out.println("连接异常");
 			return null;
 		}
-		return null;
 	}
 
 	public static void main(String[] args) {

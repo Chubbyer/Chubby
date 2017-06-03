@@ -73,8 +73,10 @@ public class TaskerPlus implements Callable<Object> {
 					System.out.println("E_302已发送成功");
 				return true;
 			}
-			else
+			else{
+				Net.sentData(socket, chubbyers);
 				System.out.println("没有找到302任务对应的用户");
+			}
 		}
 		if (eType.equals(EC.E_303)) {
 			if (users.size() > 0) {
@@ -111,8 +113,10 @@ public class TaskerPlus implements Callable<Object> {
 					System.out.println("E_303已发送成功");
 				return true;
 			}
-			else
+			else{
+				Net.sentData(socket, chubbyers);
 				System.out.println("没有找到302任务对应的用户");
+			}
 		}
 		return complete;
 	}

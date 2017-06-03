@@ -83,7 +83,7 @@ public class ChubbyerParser {
 	 */
 	public static ArrayList<Chubbyer> sortChubbyersForRanking(
 			ArrayList<String> chubbyerString) {
-		if (chubbyerString != null) {
+		if (chubbyerString.size()>0) {
 			try {
 				JSONObject jsonObj = null;
 				ArrayList<Chubbyer> chubbyers=new ArrayList<Chubbyer>();

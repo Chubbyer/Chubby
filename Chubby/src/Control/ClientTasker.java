@@ -38,8 +38,8 @@ public class ClientTasker implements Callable<Object> {
 			if (chubbyerStrings != null)
 				return chubbyerStrings;
 			else {
-				System.out.println("E_302:获取数据失败！正在重新获取");
-				return this.getUseHoursRanking();
+				System.out.println("E_302:获取数据失败！");
+				return null;
 			}
 		}
 		if (taskType.equals(EC.E_303)) {
@@ -47,8 +47,8 @@ public class ClientTasker implements Callable<Object> {
 			if (chubbyerStrings != null)
 				return chubbyerStrings;
 			else {
-				System.out.println("E_303:获取数据失败！正在重新获取");
-				return this.getUserScatters();
+				System.out.println("E_303:获取数据失败！");
+				return null;
 			}
 		}
 		return null;
@@ -57,6 +57,7 @@ public class ClientTasker implements Callable<Object> {
 	// 向工作站请求一个最优的数据服务器
 	public Object getAvailableHost() {
 		Object returnStr = null;
+		int requestTimes = 5;
 		while (true) {
 			try {
 				String serverIP = ChubbyConfig.STATION_IP;
@@ -70,7 +71,11 @@ public class ClientTasker implements Callable<Object> {
 			} catch (UnknownHostException e) {
 				// TODO Auto-generated catch block
 				// e.printStackTrace();
-				System.out.println("该服务器未启用");
+				requestTimes--;
+				System.out.println("该工作站未启用");
+				if (requestTimes < 0) {
+					break;
+				}
 				try {
 					Thread.sleep(1000);// 暂停1秒后继续请求
 				} catch (InterruptedException e1) {
@@ -80,7 +85,11 @@ public class ClientTasker implements Callable<Object> {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				// e.printStackTrace();
-				System.out.println("该服务器未启用");
+				requestTimes--;
+				System.out.println("该工作站未启用");
+				if (requestTimes < 0) {
+					break;
+				}
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e1) {
@@ -112,7 +121,7 @@ public class ClientTasker implements Callable<Object> {
 				System.out.println("已发送E_302请求，正在等待接受数据···");
 				return (ArrayList<String>) Net.acceptData(this.socket);
 			} else {
-				System.out.println("未接受到回应");
+				System.out.println("未找到可用的数据服务器");
 			}
 
 		} catch (UnknownHostException e) {
@@ -151,7 +160,7 @@ public class ClientTasker implements Callable<Object> {
 				System.out.println("已发送E_303请求，正在等待接受数据···");
 				return (ArrayList<String>) Net.acceptData(this.socket);
 			} else {
-				System.out.println("未接受到回应");
+				System.out.println("未找到可用的数据服务器");
 			}
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block

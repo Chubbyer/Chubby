@@ -45,7 +45,7 @@
 					style="margin-top:50px;color:#e0e0e0">
 					<blockquote>
 						<p id="heardtitle">
-							欢迎您，我们已根据所有同学的PC日志，分析得出了这份平均每天使用时间排行榜,在这里你可以看到你的排名
+							欢迎您，我们已根据所有同学的PC日志，分析得出了这份平均每天使用时间排行榜,在这里你可以看到你的平均每日使用时间和排名
 						</p>
 						<footer>Info from <cite title="Source Title">Chubbyer
 							Team</cite></footer>
@@ -56,13 +56,13 @@
 		<div class="row">
 			<br>
 			<div class="row">
-				<div class="col-md-7 col-md-offset-2">
+				<div class="col-md-8 col-md-offset-2">
 					<dl class="descreption">
 						<dt>
-							<span class="glyphicon glyphicon-th-large" aria-hidden="true"></span>&nbsp日平均使用时间排行榜
+							<span class="glyphicon glyphicon-th-large" aria-hidden="true"></span>&nbsp;日平均使用时间排行榜
 						</dt>
 						<dd>
-							这是根据所有同学每天的开关机时间计算得出的，按平均使用时间从大到小排列，您还可以根据榜单右上角的按钮查看数据视图、折线图，并且可以保存为图片， 有任何疑问您还可以联系<a rel="license"
+							&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;这是根据所有同学每天的开关机时间计算得出的，按平均使用时间从大到小排列，您还可以根据榜单右上角的按钮查看数据视图、折线图，并且可以保存为图片， 有任何疑问您还可以联系<a rel="license"
 								href="http://www.cqjtu.edu.cn" target="_blank">Chubbyer</a>团队。
 						</dd>
 					</dl>
@@ -75,11 +75,19 @@
 			<div class="row">
 				<div class="col-md-6 col-md-offset-3">
 					<center>
-						<p>共计使用500小时，如果你是博尔特，用这些时间你可以奔跑5000KM，相当于绕赤道3圈</p>
+						<p id="rankingCommentary"></p>
 					</center>
 				</div>
 			</div>
 		</div>	
+		<div class="row">
+			<div class="col-md-6 col-md-offset-3">
+				<br> <a href=""><button class="btn" type="button"
+						id="forecast"
+						style=" width:100%;background-color: #6a646a;color: #fff;">
+						回到首页</button></a>
+			</div>
+		</div>
 	</div>
 	<div>
 		<footer class="bs-docs-footer">

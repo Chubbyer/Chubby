@@ -48,36 +48,33 @@
 </head>
 <body>
 	<div class="container-fluid">
-		<div class="row">
-			<div class="title">
-				<h1>Chubby</h1>
-				<br>
-				<form method="post" action="Person">
-					<input name="search" type="search" placeholder="试着输入你的学号或姓名">
-				</form>
-				<span style="color:#fff">${requestScope.errorInfo}</span>
-				<h3>MAY.02 - 2017</h3>
-				<br>
-			</div>
-		</div>
-		<div class="row hotTopic">
-			<div class="row">
-				<a rel="license" href="UseRanking.jsp" target="_blank">
-					<button type="button" class="btn btntopic btn-primary">使用时间排行榜</button>
-				</a>
-				<a rel="license" href="Distribut.jsp" target="_blank">
-				<button type="button" class="btn btntopic btn-success">开关机分布</button>
-				</a>
-				<button type="button" class="btn btntopic btn-info">LeungJain</button>
-				<button type="button" class="btn btntopic btn-warning">（警告）Warning</button>
-			</div>
-			<div class="row">
-				<br>
-			</div>
-			<div class="row">
-				<button type="button" class="btn btntopic btn-default">Default</button>
-				<button type="button" class="btn btntopic btn-info">Info</button>
-				<button type="button" class="btn btntopic btn-primary">Primary</button>
+		<div class="row title">
+			<h1>Chubby</h1>
+			<br>
+			<form method="post" action="Person">
+				<input name="search" type="search" placeholder="试着输入你的学号或姓名">
+			</form>
+			<div class="row"><span style="color:#fff">${requestScope.errorInfo}</span></div>
+			<div class="row"><h3>MAY.02 - 2017</h3></div>
+			<br>
+			<div class="row hotTopic">
+				<div class="row">
+					<a rel="license" href="UseRanking.jsp" target="_blank">
+						<button type="button" class="btn btntopic btn-primary">使用时间排行榜</button>
+					</a> <a rel="license" href="Distribut.jsp" target="_blank">
+						<button type="button" class="btn btntopic btn-success">开关机分布</button>
+					</a>
+					<button type="button" class="btn btntopic btn-info">LeungJain</button>
+					<button type="button" class="btn btntopic btn-warning">（警告）Warning</button>
+				</div>
+				<div class="row">
+					<br>
+				</div>
+				<div class="row">
+					<button type="button" class="btn btntopic btn-default">Default</button>
+					<button type="button" class="btn btntopic btn-info">Info</button>
+					<button type="button" class="btn btntopic btn-primary">Primary</button>
+				</div>
 			</div>
 		</div>
 	</div>
