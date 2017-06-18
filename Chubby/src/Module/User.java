@@ -5,11 +5,28 @@ public class User {
 	private String sno;
 	private String sys;
 	private String host;
-	private double logLines;
+	private long logLines;
 	private boolean flag;//true表示已从日志文件中提取数据到MongoDB中
 	private boolean R_Flag;//true表示已从MongoDB中分析出关键数据并存储在数据库中
 	private String open_Id;
 	private String close_Id;
+	private boolean web_Flag;
+	private long webLogLines;
+	public boolean getWeb_Flag() {
+		return web_Flag;
+	}
+	public void setWeb_Flag(Boolean web_Flag) {
+		this.web_Flag = web_Flag;
+	}
+	public long getWebLogLines() {
+		return webLogLines;
+	}
+	public void setWebLogLines(long webLogLines) {
+		this.webLogLines = webLogLines;
+	}
+	public void setLogLines(long logLines) {
+		this.logLines = logLines;
+	}
 	public String getName() {
 		return name;
 	}
@@ -34,10 +51,10 @@ public class User {
 	public void setHost(String host) {
 		this.host = host;
 	}
-	public double getLogLines() {
+	public long getLogLines() {
 		return logLines;
 	}
-	public void setLogLines(double logLines) {
+	public void setLogLines(Long logLines) {
 		this.logLines = logLines;
 	}
 	public boolean getFlag() {

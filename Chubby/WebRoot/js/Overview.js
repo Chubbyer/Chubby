@@ -73,13 +73,13 @@ function showRanking() {
 			myChart.hideLoading();
 			// 填入数据
 			myChart.setOption({
-				xAxis : {
-					data : hours
+				yAxis : {
+					data : names
 				},
 				series : [ {
 					// 根据名字对应到相应的系列
 					name : '使用时间',
-					data : names
+					data : hours
 				} ]
 			});
 			$("#rankingCommentary").html("");

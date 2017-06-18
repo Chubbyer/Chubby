@@ -58,7 +58,6 @@ public class PersonOverview extends HttpServlet {
 			comp.submit(client);
 			Future<Object> future;
 			String jsonStr = "{\"days\":[],\"points\":[]}";
-			;
 			try {
 				future = comp.take();
 				ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
@@ -78,10 +77,12 @@ public class PersonOverview extends HttpServlet {
 					// 把ArrayList转换成JSON
 					ArrayList<String> days = new ArrayList<String>();
 					ArrayList<Double> points = new ArrayList<Double>();
+					
 					for (Chubbyer chubbyer : chubbyers) {
 						days.add("\"" + chubbyer.day + "\"");
 						points.add(chubbyer.point);
 					}
+					//System.out.println(points);
 					jsonStr = "{\"days\":" + days + "," + "\"points\":"
 							+ points + "}";
 					// 向前端发送JSON串
@@ -166,7 +167,7 @@ public class PersonOverview extends HttpServlet {
 				jsonStr = "{\"openPoints\":" + openPoints + ",\"closePoints\":"
 						+ closePoints + "}";
 				// 向前端发送JSON串
-				out.println(jsonStr);
+				//out.println(jsonStr);
 				System.out.println(optType + "处理完毕");
 				// System.out.println(jsonStr);
 			} catch (NullPointerException e) {

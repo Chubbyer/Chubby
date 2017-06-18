@@ -97,7 +97,7 @@ public class SocketClient implements Callable<Object> {
 				int port = ChubbyConfig.STATION_PORT;
 				System.out.println("正在向工作站请求可用的数据服务器");
 				this.socket = new Socket(serverIP, port);
-				String data = SC.CLIENT_REQUEST;
+				String data = SC.CLIENT_REQUEST+EC.E_301;
 				Net.sentData(socket, data);// 发送表示请求连接的字段
 				returnStr = Net.acceptData(socket);// 收到服务端的回应
 				break;

@@ -473,3 +473,320 @@ function forecastChart(day, points) {
 		} ]
 	});
 }
+
+function webOnline(){
+	var myChart = echarts.init(document.getElementById("webOnline"));
+	// 显示标题，图例和空的坐标轴
+	myChart.setOption({
+		title : {
+			text : '每天上网时间',
+			subtext : '数据来自于分布式PC日志处理系统Chubby'
+		},
+		tooltip : {
+			trigger : 'axis',
+			axisPointer : {
+				type : 'cross'
+			}
+		},
+		legend : {
+			data : [ '上网时间' ]
+		},
+		toolbox : {
+			show : true,
+			feature : {
+				magicType : {
+					type : [ 'line', 'bar' ]
+				},
+				saveAsImage : {}
+			}
+		},
+		xAxis : {
+			type : 'category',
+			data : [],
+			name : '日期'
+		},
+		yAxis : {
+			type : 'value',
+			axisLabel : {
+				formatter : '{value} H'
+			}
+		},
+		dataZoom : [ {
+			type : 'slider',
+			start : 60,
+			end : 100
+		} ],
+		series : [ {
+			name : '使用时间',
+			type : 'bar',
+			data : []
+		} ]
+	});
+	myChart.showLoading();
+	// 异步加载数据
+	$.get("WebRecord?oType=401_1").done(
+			function(rpdata) {
+				// alert(rpdata);
+				var JSONObject = eval("(" + rpdata + ")");
+				var days = [];
+				days = JSONObject.days;
+				var points = [];
+				points = JSONObject.points;
+				if (points.length == 0||days.length==0) {
+					myChart.hideLoading();
+					$("#webOnline").html("<img src=\"images/404.jpg\">");
+				} else {
+					myChart.hideLoading();
+					// 填入数据
+					myChart.setOption({
+						xAxis : {
+							data : days
+						},
+						series : [ {
+							// 根据名字对应到相应的系列
+							name : '上网时间',
+							data : points
+						} ]
+					});
+				}
+			});
+}
+function webBrowser(){
+	var myChart = echarts.init(document.getElementById('webBrowser'));
+	myChart.setOption({
+		title : {
+			text : '浏览器使用偏好',
+			subtext : '数据来自于分布式PC日志处理系统Chubby'
+		},
+		tooltip : {
+			trigger : 'item',
+			formatter : "{a} <br/>{b} : {c} ({d}%)"
+		},
+		series : [ {
+			name : '使用分布',
+			type : 'pie',
+			radius : '55%',
+			//roseType : 'angle',
+			data : []
+		} ]
+	})
+	myChart.showLoading();
+	$.get("WebRecord?oType=401_2").done(
+			function(rpdata) {
+				//alert(rpdata);
+				var JSONObject = eval("(" + rpdata + ")");
+				var browserName=[];
+				var visit_count=[];
+				browserName=JSONObject.browserName;
+				visit_count=JSONObject.visit_count;
+				var myData = [];
+				for(var i=0;i<browserName.length;i++){
+					myData.push({value:visit_count[i],name:browserName[i]});
+				}
+				
+				if (browserName.length == 0 ||visit_count.length==0) {
+					myChart.hideLoading();
+					$("#webBrowser").html("<img src=\"images/404.jpg\">");
+				} else {
+					myChart.hideLoading();
+					myChart.setOption({
+						series : [ {
+							data : myData
+						} ]
+					})
+				}
+			});
+}
+function webNode1(){
+	var myChart = echarts.init(document.getElementById("webNode1"));
+	// 显示标题，图例和空的坐标轴
+	myChart.setOption({
+		title : {
+			text : '经常性访问网页类型',
+			subtext : '数据来自于分布式PC日志处理系统Chubby'
+		},
+		tooltip : {
+			trigger : 'axis'
+		},
+		legend : {
+			data : [ '访问次数' ]
+		},
+		toolbox : {
+			show : true,
+			feature : {
+				mark : {
+					show : true
+				},
+				dataView : {
+					show : true,
+					readOnly : false
+				},
+				magicType : {
+					show : true,
+					type : [ 'line', 'bar' ]
+				},
+				restore : {
+					show : true
+				},
+				saveAsImage : {
+					show : true
+				}
+			}
+		},
+		calculable : true,
+		xAxis : [ {
+			type : 'value',
+			boundaryGap : [ 0, 0.01 ],
+			axisLabel : {
+				formatter : '{value} '
+			}
+		} ],
+		yAxis : [ {
+			type : 'category',
+			data : []
+		} ],
+		series : [ {
+			name : '访问次数',
+			type : 'bar',
+			data : [],
+			itemStyle : {
+				normal : {
+				// color : 'rgba(0, 148, 219, 1)'
+				}
+			}
+		}, ]
+	});
+	myChart.showLoading();
+	// 异步加载数据
+	$.get("WebRecord?oType=401_3").done(function(rpdata) {
+		// alert(rpdata);
+		var JSONObject = eval("(" + rpdata + ")");
+		var Sites = [],s=[];
+		s = JSONObject.Sites;
+		for(var i=s.length-1;i>=0;i--)
+			Sites.push(s[i]);
+		var Counts = [],c=[];
+		c = JSONObject.Counts;
+		for(var i=c.length-1;i>=0;i--)
+			Counts.push(c[i]);
+		if (Sites.length == 0 || Counts.length == 0) {
+			myChart.hideLoading();
+			$("#webNode1").html("<img src=\"images/404.jpg\">");
+		} else {
+			myChart.hideLoading();
+			// 填入数据
+			myChart.setOption({
+				yAxis : {
+					data : Sites
+				},
+				series : [ {
+					// 根据名字对应到相应的系列
+					name : '访问次数',
+					data : Counts
+				} ]
+			});
+		}
+	});
+}
+function webNode2(){
+	var myChart = echarts.init(document.getElementById("webNode2"));
+	// 显示标题，图例和空的坐标轴
+	myChart.setOption({
+		title : {
+			text : '经常性访问的网页',
+			subtext : '数据来自于分布式PC日志处理系统Chubby'
+		},
+		tooltip : {
+			trigger : 'axis'
+		},
+		legend : {
+			data : [ '访问次数' ]
+		},
+		toolbox : {
+			show : true,
+			feature : {
+				mark : {
+					show : true
+				},
+				dataView : {
+					show : true,
+					readOnly : false
+				},
+				magicType : {
+					show : true,
+					type : [ 'line', 'bar' ]
+				},
+				restore : {
+					show : true
+				},
+				saveAsImage : {
+					show : true
+				}
+			}
+		},
+		calculable : true,
+		xAxis : [ {
+			type : 'value',
+			boundaryGap : [ 0, 0.01 ],
+			axisLabel : {
+				formatter : '{value} '
+			}
+		} ],
+		yAxis : [ {
+			type : 'category',
+			data : [ '梁健', '伍守增', '邬飞', '周宇' ]
+		} ],
+		series : [ {
+			name : '访问次数',
+			type : 'bar',
+			data : [ 3.2, 3.8, 4.0, 4.1 ],
+			itemStyle : {
+				normal : {
+				// color : 'rgba(0, 148, 219, 1)'
+				}
+			}
+		}, ]
+	});
+	myChart.showLoading();
+	// 异步加载数据
+	$.get("WebRecord?oType=401_4").done(function(rpdata) {
+		// alert(data);
+		var JSONObject = eval("(" + rpdata + ")");
+		var Sites = [],s=[];
+		s = JSONObject.Sites;
+		for(var i=s.length-1;i>=0;i--)
+			Sites.push(s[i]);
+		var Counts = [],c=[];
+		c = JSONObject.Counts;
+		for(var i=c.length-1;i>=0;i--)
+			Counts.push(c[i]);
+		if (Sites.length == 0 && Counts.length == 0) {
+			myChart.hideLoading();
+			$("#webNode2").html("<img src=\"images/404.jpg\">");
+		} else {
+			myChart.hideLoading();
+			// 填入数据
+			myChart.setOption({
+				yAxis : {
+					data : Sites
+				},
+				series : [ {
+					// 根据名字对应到相应的系列
+					name : '访问次数',
+					data : Counts
+				} ]
+			});
+		}
+	});
+}
+
+function webInfo(){
+	$("#webInfoBtn").click(function() {
+		//forecastChart(days[days.length - 1], points);
+		$("#webInfoDiv").fadeIn(2000);
+		webOnline();
+		webBrowser();
+		webNode1();
+		webNode2();
+	})
+}

@@ -5,9 +5,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Date;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import Protocol.EC;
 import Protocol.SC;
 import Util.ChubbyConfig;
 import Util.Net;
@@ -49,18 +51,32 @@ public class WorkStation {
 				// 接收客户端发送内容
 				receiveData = Net.acceptData(accpetSocket);
 				String oType = receiveData.toString().substring(0, 3);
-				if (oType.equals(SC.CLIENT_REQUEST) && this.hostList.size() > 0) {
-					// 客服机请求一个最优的服务器
+				if (oType.equals(SC.CLIENT_REQUEST) && this.hostList != null) {
+					// 返回给能满足客服端任务要求的DS
 					ArrayList<String> hostInfo = new ArrayList<String>();
-					if (this.hostList != null) {
-						hostInfo.add(this.hostList.get(0).ip);
-						hostInfo.add(this.hostList.get(0).port + "");
-						this.hostList.get(0).priority--;
+					// 附加的数据，一般为任务类型
+					String additional = receiveData.toString().substring(3);
+					if (additional.equals(EC.E_302)
+							|| additional.equals(EC.E_303)) {
+						// 客服端请求能满足302或303任务的DS
+						if (this.hostList.size() > 0
+								&& this.hostList.get(0).priority >= 5) {
+							hostInfo.add(this.hostList.get(0).ip);
+							hostInfo.add(this.hostList.get(0).port + "");
+							this.hostList.get(0).priority-=5;
+						}
 					} else {
-						hostInfo.add(ChubbyConfig.DEFAULT_MONGODB_IP);
-						hostInfo.add(ChubbyConfig.DEFAULT_MONGODB_PORT + "");
+						if (this.hostList.size() > 0) {
+							hostInfo.add(this.hostList.get(0).ip);
+							hostInfo.add(this.hostList.get(0).port + "");
+							this.hostList.get(0).priority--;
+						} else {
+							hostInfo.add(ChubbyConfig.DEFAULT_DS_IP);
+							hostInfo.add(ChubbyConfig.DEFAULT_DS_PORT + "");
+						}
 					}
 					Net.sentData(accpetSocket, hostInfo);
+					this.hostList = this.sortHostPriority(this.hostList);
 					continue;
 				}
 				if (oType.equals(SC.CHUBBYER_REPORT)) {
@@ -68,9 +84,9 @@ public class WorkStation {
 					String additional = receiveData.toString().substring(3);
 					DataHost host = this.getDataHost(additional);
 					System.out.println("收到" + host.ip + "加入Chubby系统的报告");
-					//若该host已在hostList之中，则将已有的host移除
+					// 若该host已在hostList之中，则将已有的host移除
 					for (int i = 0; i < this.hostList.size(); i++) {
-						if(host.ip.equals(hostList.get(i).ip)){
+						if (host.ip.equals(hostList.get(i).ip)) {
 							this.hostList.remove(i);
 						}
 					}
@@ -78,7 +94,7 @@ public class WorkStation {
 					if (Net.sentData(accpetSocket, SC.CHUBBYER_REPORT))
 						System.out.println("   " + host.ip + "成功加入Chubby系统");
 					this.hostList = this.sortHostPriority(this.hostList);
-					heartBeat.hostList=this.hostList;//更新心跳测试列表
+					heartBeat.hostList = this.hostList;// 更新心跳测试列表
 					continue;
 				}
 				if (oType.equals(SC.HEART_BEAT)) {
@@ -90,10 +106,10 @@ public class WorkStation {
 						System.out.println("    收到" + host.ip + "的心跳测试报告");
 						for (int i = 0; i < this.hostList.size(); i++) {
 							if (this.hostList.get(i).ip.equals(host.ip)) {
-								//更新优先权
-								this.hostList.get(i).priority=host.priority;
+								// 更新优先权
+								this.hostList.get(i).priority = host.priority;
 							} else {
-								//降低优先权
+								// 降低优先权
 								this.hostList.get(i).priority--;
 							}
 						}
@@ -202,7 +218,7 @@ public class WorkStation {
 		// for (DataHost dataHost : dataHosts) {
 		// System.out.println(dataHost.port);
 		// }
-		 //Net.sendDataByUDP("172.16.70.201", 9090, "sss");
+		// Net.sendDataByUDP("172.16.70.201", 9090, "sss");
 		WorkStation ws = new WorkStation(10000);
 		ws.action();
 		// HeartBeat heartBeat = new HeartBeat(null, 5 * 1000);
@@ -227,7 +243,7 @@ class DataHost {
 /*
  * 用于开展心跳测试
  */
- class HeartBeat extends Thread {
+class HeartBeat extends Thread {
 	public ArrayList<DataHost> hostList;// 需要被测试的服务器
 	public Timing timing;
 	public long delay;// 心跳测试的间隔时间

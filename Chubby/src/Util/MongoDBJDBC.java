@@ -4,10 +4,15 @@ import java.awt.List;
 import java.util.ArrayList;
 
 import org.bson.Document;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import Control.SocketServer;
+import Module.Chubbyer;
 import Module.Event;
 import Module.User;
+import Module.WebAnalyzer;
+import Module.WebVisiter;
 
 import com.mongodb.Block;
 import com.mongodb.MongoClient;
@@ -27,7 +32,6 @@ import static com.mongodb.client.model.Updates.*;
 public class MongoDBJDBC {
 	public String ip = "localhost";
 	public int port = 27017;
-	// public String dbName = "Leung";
 	public MongoClient mongoClient = null;// mongodb 服务
 	public String dbName;
 
@@ -193,9 +197,7 @@ public class MongoDBJDBC {
 					.first();
 			// System.out.println(document.toJson());
 			this.closeMongoDB();
-			if (document != null)
-				return JSONParser.getUserFromJSONStr(document.toJson());
-			return null;
+			return JSONParser.getUserFromJSONStr(document.toJson());
 		}
 		return null;
 	}
@@ -246,7 +248,7 @@ public class MongoDBJDBC {
 	 */
 	public void insertUser(int i, String name, String sno, String sys,
 			String host, Double logLines, boolean flag, boolean r_Flag,
-			String open_Id, String close_Id) {
+			String open_Id, String close_Id, Boolean web_Flag, int webLogLines) {
 		// ({i:1,Name:"梁健",Sno:"631406010412",Sys:"Windows10",Host:"Leung",
 		// LogLines:10000,Flag:0,R_Flag:0,Open_Id:"4798",Close_Id:"4647"})
 		if (this.mongoClient != null) {
@@ -254,7 +256,8 @@ public class MongoDBJDBC {
 					.append("Sno", sno).append("Sys", sys).append("Host", host)
 					.append("LogLines", logLines).append("Flag", flag)
 					.append("R_Flag", r_Flag).append("Open_Id", open_Id)
-					.append("Close_Id", close_Id);
+					.append("Close_Id", close_Id).append("Web_Flag", web_Flag)
+					.append("WebLogLines", webLogLines);
 			MongoCollection<Document> collection = this.mongoClient
 					.getDatabase("User").getCollection("Info");
 			collection.insertOne(document);
@@ -312,29 +315,162 @@ public class MongoDBJDBC {
 		return chubbyers;
 	}
 
+	/*
+	 * 将WebLog信息写入数据库
+	 */
+	@SuppressWarnings("unconnectionMongoDB")
+	public void insertWebVisiter(String colleName, WebVisiter visiter) {
+		// MongoDBJDBC.connectionMongoDB();
+		if (this.mongoClient != null) {
+			Document document = new Document("i", (int) visiter.index)
+					.append("url", visiter.url)
+					.append("visit_time", visiter.visit_time)
+					.append("visit_count", visiter.visit_count)
+					.append("web_browser", visiter.web_browser);
+			MongoCollection<Document> collection = this.mongoClient
+					.getDatabase(dbName).getCollection(colleName);
+			collection.insertOne(document);
+		}
+		// MongoDBJDBC.closeMongoDB();
+	}
+
+	/*
+	 * 查找某个用户数据库中浏览器日志记录
+	 */
+	@SuppressWarnings("unconnectionMongoDB")
+	public ArrayList<WebVisiter> findWebVisiters(String colleName,
+			int startIndex, int endIndex) {
+		// MongoDBJDBC.connectionMongoDB();//这个方法比较特殊，在调用出统一连接，统一关闭
+		try {
+			final ArrayList<WebVisiter> webVisiters = new ArrayList<WebVisiter>();
+			MongoCollection<Document> collection = this.mongoClient
+					.getDatabase(this.dbName).getCollection(colleName);
+			Block<Document> printBlock = new Block<Document>() {
+				@Override
+				public void apply(final Document document) {
+					webVisiters.add(JSONParser
+							.getWebVisiterFromJSONStr(document.toJson()));
+					// System.out.println(document.toJson());
+				}
+			};
+			collection.find(and(gt("i", startIndex), lte("i", endIndex)))
+					.forEach(printBlock);
+			return webVisiters;
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			// e.printStackTrace();
+			return null;
+		}
+	}
+
+	/*
+	 * 将每天在线的时间存入数据库
+	 */
+	public void writeOnlineTimes(String colleName, ArrayList<Chubbyer> chubbyers) {
+		this.connectionMongoDB();
+		if (this.mongoClient != null) {
+			MongoCollection<Document> collection = this.mongoClient
+					.getDatabase(dbName).getCollection(colleName);
+			for (int i = 0; i < chubbyers.size(); i++) {
+				Document document = new Document("Day", chubbyers.get(i).day)
+						.append("Usetime", chubbyers.get(i).point);
+				collection.insertOne(document);
+			}
+		}
+		this.closeMongoDB();
+	}
+
+	/*
+	 * 将浏览器的使用情况写入数据库
+	 */
+	public void writeBrowserInfo(String colleName, ArrayList<Chubbyer> chubbyers) {
+		this.connectionMongoDB();
+		if (this.mongoClient != null) {
+			MongoCollection<Document> collection = this.mongoClient
+					.getDatabase(dbName).getCollection(colleName);
+			for (int i = 0; i < chubbyers.size(); i++) {
+				Document document = new Document("Browser",
+						chubbyers.get(i).day).append("Visit_count",
+						chubbyers.get(i).point);
+				collection.insertOne(document);
+			}
+		}
+		this.closeMongoDB();
+	}
+
+	/*
+	 * 将网站的访问情况存入数据库
+	 */
+	public void writeNodes(String colleName, ArrayList<Chubbyer> chubbyers) {
+		this.connectionMongoDB();
+		if (this.mongoClient != null) {
+			MongoCollection<Document> collection = this.mongoClient
+					.getDatabase(dbName).getCollection(colleName);
+			for (int i = 0; i < chubbyers.size(); i++) {
+				Document document = new Document("Site", chubbyers.get(i).day)
+						.append("Counts", chubbyers.get(i).point);
+				collection.insertOne(document);
+			}
+		}
+		this.closeMongoDB();
+	}
+
+	/*
+	 * 查找某个用户数据库中，网站访问情况
+	 */
+	public ArrayList<Chubbyer> findWebNodes(String colleName,
+			final String key1, final String key2) {
+		this.connectionMongoDB();//
+		try {
+			final ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
+			MongoCollection<Document> collection = this.mongoClient
+					.getDatabase(this.dbName).getCollection(colleName);
+			Block<Document> printBlock = new Block<Document>() {
+				@Override
+				public void apply(final Document document) {
+					try {
+						JSONObject jsonObj = new JSONObject(document.toJson());
+						chubbyers.add(new Chubbyer(jsonObj.getString(key1),
+								jsonObj.getDouble(key2)));
+					} catch (JSONException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					// System.out.println(document.toJson());
+				}
+			};
+			collection.find().forEach(printBlock);
+			this.closeMongoDB();
+			return chubbyers;
+		} catch (Exception e) {
+			System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			// e.printStackTrace();
+			this.closeMongoDB();
+			return null;
+		}
+	}
+
 	public static void main(String[] args) {
 		// MongoDBJDBC.createCollection("Security");
-		ArrayList<String> cbs = new ArrayList<String>();
-		cbs.add("{'ot':'123','ct':'234'}");
-		cbs.add("{'ot':'123','ct':'234'}");
-		// MongoDBJDBC mongoer = new MongoDBJDBC("Leung");
-		// mongoer.connectionMongoDB();
+//		MongoDBJDBC mongoer = new MongoDBJDBC("User");
+//		User user = mongoer.findUserInfo("Leung");
+//		System.out.println(user.getWeb_Flag());
 		// mongoer.insertChubbyers("Chubby", cbs);
 		// mongoer.findAllChubbyers("Chubby");
 		// mongoer.connectionMongoDB();
 		// MongoDBJDBC.findAll("Chubby", "myLogs");
 		// mongoer.findEvents("Security", 0,30);
-		// System.out.println(mongoer.findUserInfo("Leung").getFlag());
+		//System.out.println(mongoer.findUserInfo("Leung").getWebLogLines());
 		// mongoer.updateUserInfo("Leung", "Flag", false);
 		// boolean flag=MongoDBJDBC.findUserInfo("Leung").getFlag();
 		// if(flag==false)
 		// System.out.println("qq");
 		// mongoer.closeMongoDB();
 
-		MongoDBJDBC mongoer = new MongoDBJDBC("Log");
+		// MongoDBJDBC mongoer = new MongoDBJDBC("Log");
 		// mongoer.updateUserInfo("Leung", "LogLines", 15000);
 		// mongoer.connectionMongoDB();
-		mongoer.writeLog("Leung", "2017-05-28 10:00:00");
+		// mongoer.writeLog("Leung", "2017-05-28 10:00:00");
 		// System.out.println(mongoer.findUserInfo("Leung").getName());
 	}
 }

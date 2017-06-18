@@ -34,6 +34,7 @@
 <script type="text/javascript">
 	$(document).ready(function() {
 		showChart1();
+		webInfo();
 		//showChart2();
 		//showChart3();
 	});
@@ -43,8 +44,12 @@
 	<div class="container-fluid">
 		<div class="row">
 			<div class="col-md-12" id="personheard">
-				<div class="col-md-6 col-md-offset-2"
-					style="margin-top:50px;color:#e0e0e0">
+				<div class="col-md-1 col-md-offset-2"
+					style="margin-top:50px;color: #9cd3aa;">
+					<h1 style="font-weight: 600;font-size: 50px;line-height: 1;">Chubby</h1>
+				</div>
+				<div class="col-md-6"
+					style="margin-top:50px;margin-left:100px;color:#e0e0e0">
 					<blockquote>
 						<p id="heardtitle">
 							欢迎您${requestScope.useName}，我们已根据您的PC日志，得出了这份报告,它可能<br>有助于你了解自己的使用习惯
@@ -106,7 +111,68 @@
 					</div>
 				</div>
 			</div>
-
+			<div class="row">
+				<div class="col-md-6 col-md-offset-3">
+					<br>
+					<button class="btn" type="button" id="webInfoBtn"
+						style=" width:100%;background-color: #6a646a;color: #fff;">查看上网信息</button>
+				</div>
+			</div>
+			<div class="row" id="webInfoDiv" style="display:none;">
+				<br>
+				<div class="row">
+					<center>
+						<div class="col-md-6 col-md-offset-3" id="webOnline"
+							style="height:400px; width:650px;"></div>
+					</center>
+				</div>
+				<div class="row">
+					<div class="col-md-6 col-md-offset-3">
+						<center>
+							<p>根据您所有的上网记录，通过统计分析得出以上信息提供参考</p>
+						</center>
+					</div>
+				</div>
+				<div class="row">
+					<center>
+						<div class="col-md-6 col-md-offset-3" id="webBrowser"
+							style="height:400px; width:650px;"></div>
+					</center>
+				</div>
+				<div class="row">
+					<div class="col-md-6 col-md-offset-3">
+						<center>
+							<p>通常您喜欢使用这些浏览器上网浏览网页</p>
+						</center>
+					</div>
+				</div>
+				<div class="row">
+					<center>
+						<div class="col-md-7 col-md-offset-3" id="webNode1"
+							style="height:400px; width:700px;"></div>
+					</center>
+				</div>
+				<div class="row">
+					<div class="col-md-6 col-md-offset-3">
+						<center>
+							<p>通常您比较喜欢浏览这些类型的网页</p>
+						</center>
+					</div>
+				</div>
+				<div class="row">
+					<center>
+						<div class="col-md-7 col-md-offset-3" id="webNode2"
+							style="height:400px; width:700px;"></div>
+					</center>
+				</div>
+				<div class="row">
+					<div class="col-md-6 col-md-offset-3">
+						<center>
+							<p>通常您比较喜欢浏览这些网站</p>
+						</center>
+					</div>
+				</div>
+			</div>
 		</div>
 		<div class="row">
 			<br>

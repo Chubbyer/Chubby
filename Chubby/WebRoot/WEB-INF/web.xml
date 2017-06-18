@@ -16,6 +16,11 @@
     <servlet-name>Overview</servlet-name>
     <servlet-class>View.Overview</servlet-class>
   </servlet>
+  <servlet>
+    <servlet-name>WebRecord</servlet-name>
+    <servlet-class>View.WebRecord</servlet-class>
+  </servlet>
+
 
   <servlet-mapping>
     <servlet-name>Person</servlet-name>
@@ -24,5 +29,9 @@
   <servlet-mapping>
     <servlet-name>Overview</servlet-name>
     <url-pattern>/Overview</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>WebRecord</servlet-name>
+    <url-pattern>/WebRecord</url-pattern>
   </servlet-mapping>
 </web-app>

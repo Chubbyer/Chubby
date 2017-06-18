@@ -23,10 +23,10 @@ public class ChubbyerParser {
 	 */
 	public static ArrayList<Chubbyer> getUseTime(
 			ArrayList<String> chubbyerString) {
-		if(chubbyerString==null)
+		if (chubbyerString == null)
 			return null;
 		ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
-		//System.out.println(chubbyerString.size());
+		// System.out.println(chubbyerString.size());
 		JSONObject jsonObj = null;
 		try {
 			for (int i = 0; i < chubbyerString.size(); i++) {
@@ -52,7 +52,7 @@ public class ChubbyerParser {
 	 */
 	public static ArrayList<Chubbyer> getUseTimeScatter(
 			ArrayList<String> chubbyerString) {
-		if(chubbyerString==null)
+		if (chubbyerString == null)
 			return null;
 		ArrayList<Chubbyer> openChubbyers = new ArrayList<Chubbyer>();
 		ArrayList<Chubbyer> closeChubbyers = new ArrayList<Chubbyer>();
@@ -83,15 +83,16 @@ public class ChubbyerParser {
 	 */
 	public static ArrayList<Chubbyer> sortChubbyersForRanking(
 			ArrayList<String> chubbyerString) {
-		if (chubbyerString.size()>0) {
+		if (chubbyerString.size() > 0) {
 			try {
 				JSONObject jsonObj = null;
-				ArrayList<Chubbyer> chubbyers=new ArrayList<Chubbyer>();
+				ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
 				for (int i = 0; i < chubbyerString.size(); i++) {
 					jsonObj = new JSONObject(chubbyerString.get(i));
-					chubbyers.add(new Chubbyer(jsonObj.getString("name"), jsonObj.getDouble("hours")));
+					chubbyers.add(new Chubbyer(jsonObj.getString("name"),
+							jsonObj.getDouble("hours")));
 				}
-				ArrayList<Chubbyer> finallChubbyers=new ArrayList<Chubbyer>();
+				ArrayList<Chubbyer> finallChubbyers = new ArrayList<Chubbyer>();
 				int minIndex = 0;
 				int size = chubbyers.size();
 				for (int i = 0; i < size - 1; i++) {
@@ -125,17 +126,18 @@ public class ChubbyerParser {
 	 */
 	public static ArrayList<Double> getUseHoursDistribut(
 			ArrayList<String> chubbyerString) {
-		if(chubbyerString==null)
+		if (chubbyerString == null)
 			return null;
-		try {
-			double[] temp;
-			double morning = 0, aftermoon = 0, evening = 0;
-			JSONObject jsonObj = null;
-			Chubbyer open = new Chubbyer();
-			Chubbyer close = new Chubbyer();
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
-			Date oDate = null, cDate = null;
-			for (int i = 0; i < chubbyerString.size(); i++) {
+
+		double[] temp;
+		double morning = 0, aftermoon = 0, evening = 0;
+		JSONObject jsonObj = null;
+		Chubbyer open = new Chubbyer();
+		Chubbyer close = new Chubbyer();
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd");
+		Date oDate = null, cDate = null;
+		for (int i = 0; i < chubbyerString.size(); i++) {
+			try {
 				jsonObj = new JSONObject(chubbyerString.get(i));
 				open = TimeParser.getTimeScatter(jsonObj.getString("ot"));
 				close = TimeParser.getTimeScatter(jsonObj.getString("ct"));
@@ -166,24 +168,27 @@ public class ChubbyerParser {
 						evening += 11;
 					}
 				}
+			} catch (JSONException | ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				continue;
+			}catch (Exception e) {
+				// TODO: handle exception
+				continue;
 			}
-			morning = Math.round(morning * 10) / 10.0;
-			aftermoon = Math.round(aftermoon * 10) / 10.0;
-			evening = Math.round(evening * 10) / 10.0;
-//			System.out.println("M:" + morning);
-//			System.out.println("A:" + aftermoon);
-//			System.out.println("E:" + evening);
-			ArrayList<Double> ret = new ArrayList<Double>();
-			ret.add(morning);
-			ret.add(aftermoon);
-			ret.add(evening);
-//			System.out.println("CP:" + ret);
-			return ret;
-		} catch (JSONException | ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
-		return null;
+		morning = Math.round(morning * 10) / 10.0;
+		aftermoon = Math.round(aftermoon * 10) / 10.0;
+		evening = Math.round(evening * 10) / 10.0;
+		// System.out.println("M:" + morning);
+		// System.out.println("A:" + aftermoon);
+		// System.out.println("E:" + evening);
+		ArrayList<Double> ret = new ArrayList<Double>();
+		ret.add(morning);
+		ret.add(aftermoon);
+		ret.add(evening);
+		// System.out.println("CP:" + ret);
+		return ret;
 	}
 
 	/*
@@ -204,7 +209,7 @@ public class ChubbyerParser {
 			// 开机在6点以前，关机在12点与19点之间
 			morning += 6;
 			aftermoon += close - 12;
-			evening+=6-open;
+			evening += 6 - open;
 		}
 		if (open <= 6 && 19 < close && close <= 24) {
 			// 开机在6点以前，关机在19点与24点之间
@@ -230,11 +235,11 @@ public class ChubbyerParser {
 			evening += close - 19;
 		}
 		// ---------------
-		if (6 < open && 12 < open && close <= 19 && open < close) {
+		if (12 < open && close <= 19 && open < close) {
 			// 开关机都是在12点与19点之间
 			aftermoon += close - open;
 		}
-		if (6 < open && 12 < open && open <= 19 && 19 < close && close <= 24) {
+		if (12 < open && open <= 19 && 19 < close && close <= 24) {
 			// 开机在12点与19点之间，关机在19点与24点之间
 			aftermoon += 19 - open;
 			evening += close - 19;
@@ -253,7 +258,7 @@ public class ChubbyerParser {
 	 */
 	public static ArrayList<Chubbyer> supplementChubbyers(
 			ArrayList<Chubbyer> chubbyers) {
-		if(chubbyers==null)
+		if (chubbyers == null)
 			return null;
 		ArrayList<Chubbyer> finalChubbyers = new ArrayList<Chubbyer>();
 		DateFormat df = new SimpleDateFormat("yyyy/MM/dd");
@@ -294,7 +299,7 @@ public class ChubbyerParser {
 	 */
 	public static ArrayList<Chubbyer> remoneRepChubbyers(
 			ArrayList<Chubbyer> chubbyers) {
-		if (chubbyers==null)
+		if (chubbyers == null)
 			return null;
 		ArrayList<Chubbyer> finalChubbyers1 = new ArrayList<Chubbyer>();
 		DateFormat df = new SimpleDateFormat("yyyy/MM/dd");
@@ -332,28 +337,31 @@ public class ChubbyerParser {
 	}
 
 	public static void main(String[] args) {
-		double[] d = ChubbyerParser.getDayHoursDistribut(0, 24);
+		// double[] d = ChubbyerParser.getDayHoursDistribut(1, 25);
 		// System.out.println("M:" + d[0]);
 		// System.out.println("A:" + d[1]);
-		// System.out.println("E:" + d[2]);
-		String string = "{\"ot\":\"2017-05-12 11:11:10\",\"ct\":\"2017-05-12 12:11:10\"}";
+		// System.out.println("E:" +
+		// d[2]);//{"ot":"2017-05-12 01:30:00","ct":"2017-05-12 12:00:00"}
+		String string = "{\"ot\":\"2017-05-12 11:00:00\",\"ct\":\"2017-05-12 16:00:00\"}";
 		ArrayList<String> al = new ArrayList<String>();
 		al.add(string);
-		ArrayList<Double>dd = ChubbyerParser.getUseHoursDistribut(al);
-		System.out.println("M:" + dd.get(0));
-		System.out.println("A:" + dd.get(1));
-		System.out.println("E:" + dd.get(2));
-//		String string1="{\"name\":\"梁健\",\"hours\":3.2}";
-//		String string2="{\"name\":\"Leung\",\"hours\":2.2}";
-//		String string3="{\"name\":\"梁健\",\"hours\":4.2}";
-//		ArrayList<String> al=new ArrayList<String>();
-//		al.add(string1);
-//		al.add(string2);
-//		al.add(string3);
-//		ArrayList<Chubbyer> chubbyers=new ArrayList<Chubbyer>();
-//		chubbyers=ChubbyerParser.sortChubbyersForRanking(al);
-//		for (Chubbyer chubbyer : chubbyers) {
-//			System.out.println("Name:"+chubbyer.day+" Hours:"+chubbyer.point);
-//		}
+		System.out.println(al);
+		ArrayList<Double> dd = ChubbyerParser.getUseHoursDistribut(al);
+		System.out.println(dd);
+		// System.out.println("M:" + dd.get(0));
+		// System.out.println("A:" + dd.get(1));
+		// System.out.println("E:" + dd.get(2));
+		// String string1="{\"name\":\"梁健\",\"hours\":3.2}";
+		// String string2="{\"name\":\"Leung\",\"hours\":2.2}";
+		// String string3="{\"name\":\"梁健\",\"hours\":4.2}";
+		// ArrayList<String> al=new ArrayList<String>();
+		// al.add(string1);
+		// al.add(string2);
+		// al.add(string3);
+		// ArrayList<Chubbyer> chubbyers=new ArrayList<Chubbyer>();
+		// chubbyers=ChubbyerParser.sortChubbyersForRanking(al);
+		// for (Chubbyer chubbyer : chubbyers) {
+		// System.out.println("Name:"+chubbyer.day+" Hours:"+chubbyer.point);
+		// }
 	}
 }

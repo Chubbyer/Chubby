@@ -41,8 +41,12 @@
 	<div class="container-fluid">
 		<div class="row">
 			<div class="col-md-12" id="personheard">
-				<div class="col-md-6 col-md-offset-2"
-					style="margin-top:50px;color:#e0e0e0">
+				<div class="col-md-1 col-md-offset-2"
+					style="margin-top:50px;color: #9cd3aa;">
+					<h1 style="font-weight: 600;font-size: 50px;line-height: 1;">Chubby</h1>
+				</div>
+				<div class="col-md-6"
+					style="margin-top:50px;margin-left:100px;color:#e0e0e0">
 					<blockquote>
 						<p id="heardtitle">
 							欢迎您，我们已根据所有同学的PC日志，分析得出了这份平均每天使用时间排行榜,在这里你可以看到你的平均每日使用时间和排名

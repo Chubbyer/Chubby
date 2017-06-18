@@ -7,4 +7,8 @@ public class EC {
 	public static String E_301_3="301_3";//开关机时点分布
 	public static String E_302="302";//获取所有人的使用时间排行榜
 	public static String E_303="303";//获取所有人开关机时点分布
+	public static String E_401_1="401_1";//每天上网使用多少小时
+	public static String E_401_2="401_2";//浏览器
+	public static String E_401_3="401_3";//网站类型
+	public static String E_401_4="401_4";//网站
 }
