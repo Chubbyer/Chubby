@@ -188,16 +188,28 @@ public class MongoDBJDBC {
 	 * 查找某个同学关于他的文件信息,参数str表示为姓名或学号或主机名
 	 */
 	public User findUserInfo(String str) {
-		if (this.connectionMongoDB()) {
-			MongoCollection<Document> collection = this.mongoClient
-					.getDatabase("User").getCollection("Info");
-			Document document = new Document();
-			document = collection.find(
-					or(eq("Name", str), eq("Sno", str), eq("Host", str)))
-					.first();
-			// System.out.println(document.toJson());
-			this.closeMongoDB();
-			return JSONParser.getUserFromJSONStr(document.toJson());
+		try {
+			if (this.connectionMongoDB()) {
+				MongoCollection<Document> collection = this.mongoClient
+						.getDatabase("User").getCollection("Info");
+				Document document = new Document();
+				document = collection.find(
+						or(eq("Name", str), eq("Sno", str), eq("Host", str)))
+						.first();
+				this.closeMongoDB();
+				// System.out.println(document.toJson());
+				
+				if(document.toJson().equals(null))
+					return null;
+				else {
+					User user=JSONParser.getUserFromJSONStr(document.toJson());
+					return user;
+				}				
+			}
+		} catch (Exception e) {
+			//System.err.println(e.getClass().getName() + ": " + e.getMessage());
+			// e.printStackTrace();
+			return null;
 		}
 		return null;
 	}
@@ -452,15 +464,15 @@ public class MongoDBJDBC {
 
 	public static void main(String[] args) {
 		// MongoDBJDBC.createCollection("Security");
-//		MongoDBJDBC mongoer = new MongoDBJDBC("User");
-//		User user = mongoer.findUserInfo("Leung");
-//		System.out.println(user.getWeb_Flag());
+		// MongoDBJDBC mongoer = new MongoDBJDBC("User");
+		// User user = mongoer.findUserInfo("Leung");
+		// System.out.println(user.getWeb_Flag());
 		// mongoer.insertChubbyers("Chubby", cbs);
 		// mongoer.findAllChubbyers("Chubby");
 		// mongoer.connectionMongoDB();
 		// MongoDBJDBC.findAll("Chubby", "myLogs");
 		// mongoer.findEvents("Security", 0,30);
-		//System.out.println(mongoer.findUserInfo("Leung").getWebLogLines());
+		// System.out.println(mongoer.findUserInfo("Leung").getWebLogLines());
 		// mongoer.updateUserInfo("Leung", "Flag", false);
 		// boolean flag=MongoDBJDBC.findUserInfo("Leung").getFlag();
 		// if(flag==false)

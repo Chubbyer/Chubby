@@ -1,8 +1,24 @@
+function avg_Expect(points){
+	var sum=0,avg,std_dvt;
+	var ret=[];
+	var array=[];
+	array=points;
+	for(var i=0;i<array.length;i++)
+		sum+=array[i];
+	avg=Math.round(sum*10/array.length)/10.0;
+	for(var i=0;i<array.length;i++)
+		sum+=(avg-array[i])*(avg-array[i]);
+	std_dvt=Math.round(Math.sqrt(sum)*10)/10.0;
+	ret.push(avg);
+	ret.push(std_dvt);
+	return ret;
+}
 function showChart3() {
 	var myChart3 = echarts.init(document.getElementById('myChart3'));
 	var option = {
 		title : {
 			text : '开关机时点分布',
+			subtext : '数据来自于分布式PC日志处理系统Chubby'
 		},
 		legend : {
 			data : [ '开机', '关机' ]
@@ -61,11 +77,8 @@ function showChart3() {
 	};
 	myChart3.setOption(option);
 	myChart3.showLoading();
-	$
-			.get("PersonOverview?oType=301_3")
-			.done(
-					function(rpdata) {
-						var JSONObject = eval("(" + rpdata + ")");
+	$.get("PersonOverview?oType=301_3").done(function(rpdata) {
+		var JSONObject = eval("(" + rpdata + ")");
 						var openPoints = [];
 						var open = [];
 						var closePoints = [];
@@ -77,8 +90,7 @@ function showChart3() {
 						} else {
 							myChart3.hideLoading();
 							// 填入数据
-							myChart3
-									.setOption({
+							myChart3.setOption({
 										series : [
 												{
 													name : '开机',
@@ -121,8 +133,7 @@ function showChart3() {
 														var open = [];
 														var point = [];
 														for (i = 0; i < openPoints.length; i++) {
-															open
-																	.push([
+															open.push([
 																			new Date(
 																					openPoints[i][0]),
 																			openPoints[i][1] ])
@@ -176,6 +187,31 @@ function showChart3() {
 												} ]
 									});
 						}
+						var showInfo='';
+						//$("#commentary3").html("AAAA");
+						var relInfo=[];
+						var opens=[];
+						for(var i=0;i<openPoints.length;i++)
+							opens.push(openPoints[i][1]);
+						//alert(opens);
+						relInfo=avg_Expect(opens);
+						//alert(relInfo);
+						if(relInfo[1]<=1)//标准差小于1
+							showInfo+="您开机的时点主要集中在"+relInfo[0]+",这说明您的作息时间比较规范。";
+						else
+							showInfo+="没有发现您通常的开机时间，这也许跟您的上课时间有关系。";
+						var closes=[];
+						for(var i=0;i<closePoints.length;i++)
+							closes.push(closePoints[i][1]);
+						relInfo=avg_Expect(closes);
+						if(relInfo[1]<=1){//标准差小于1
+							showInfo+="您关机机的时点主要集中在"+relInfo[0]+",这说明您通常在这个时间休息。";
+							if(relInfo[0]>=24)
+								showInfo+="Chubby提醒您早睡早起，有助于身体健康。";
+						}
+						else
+							showInfo+="没有发现您通常的关机时间，这很可能说明您对电脑依赖度较低。";
+						$("#commentary3").html(showInfo);
 					});
 }
 
@@ -183,7 +219,8 @@ function showChart2() {
 	var myChart2 = echarts.init(document.getElementById('myChart2'));
 	myChart2.setOption({
 		title : {
-			text : '一天中PC使用时间分布'
+			text : '一天中PC使用时间分布',
+			subtext : '数据来自于分布式PC日志处理系统Chubby'
 		},
 		tooltip : {
 			trigger : 'item',
@@ -202,14 +239,18 @@ function showChart2() {
 			function(rpdata) {
 				//alert(rpdata);
 				var JSONObject = eval("(" + rpdata + ")");
+				var morning,afternoon,evening;
+				morning=JSONObject.morning;
+				afternoon=JSONObject.afternoon;
+				evening=JSONObject.evening;
 				var myData = [ {
-					value : JSONObject.morning,
+					value : morning,
 					name : '上午（6:00-12:00）'
 				}, {
-					value : JSONObject.afternoon,
+					value : afternoon,
 					name : '下午（12:00-19:00）'
 				}, {
-					value : JSONObject.evening,
+					value : evening,
 					name : '晚上（19:00以后）'
 				} ];
 				if (JSONObject.evening == 0 && JSONObject.afternoon==0
@@ -224,6 +265,19 @@ function showChart2() {
 							data : myData
 						} ]
 					})
+					
+					var showInfo='';
+					if(morning>afternoon&&morning>evening)
+						showInfo+="您使用电脑的时间主要集中在上午，这可能跟您的课程时间有很大的关系，Chubby提醒您合理安排时间，" +
+								"长时间使用电脑对眼睛有很大的伤害，我们需要一个美丽的世界，更需要一双美丽的眼睛。";
+					if(afternoon>morning&&afternoon>evening)
+						showInfo+="您使用电脑的时间主要集中在下午，这可能跟您的课程时间有很大的关系，Chubby提醒您合理安排时间，" +
+								"长时间使用电脑对眼睛有很大的伤害，我们需要一个美丽的世界，更需要一双美丽的眼睛。";
+					if(evening>morning&&evening>afternoon)
+						showInfo+="您使用电脑的时间主要集中在晚上，这可能跟您的课程时间有很大的关系，Chubby提醒您合理安排时间，" +
+								"长时间使用电脑对眼睛有很大的伤害，我们需要一个美丽的世界，更需要一双美丽的眼睛。";	
+					
+					$("#commentary2").html(showInfo);
 					showChart3();
 				}
 			});
@@ -234,7 +288,8 @@ function showChart1() {
 	// 显示标题，图例和空的坐标轴
 	myChart1.setOption({
 		title : {
-			text : '每天PC使用时间'
+			text : '每天PC使用时间',
+			subtext : '数据来自于分布式PC日志处理系统Chubby'
 		},
 		tooltip : {
 			trigger : 'axis',
@@ -305,8 +360,8 @@ function showChart1() {
 					});
 					var useSum = useHours(points);
 					$("#commentary1").html(
-							"共计使用" + useSum + "小时，如果你是博尔特，用这些时间你可以奔跑" + useSum
-									* 36 + "KM，相当于绕赤道"
+							points.length+"天共计使用" + useSum + "小时，如果你是博尔特，用这些时间你可以奔跑" + Math.round(useSum
+									* 36*10)/10.0 + "KM，相当于绕赤道"
 									+ Math.round(useSum * 36 * 10 / 40075) / 10
 									+ "圈")
 					$("#forecast").click(function() {
@@ -406,7 +461,8 @@ function forecastChart(day, points) {
 	var myChart = echarts.init(document.getElementById("forecastChart"));
 	myChart.setOption({
 		title : {
-			text : '未来两周预计使用时间'
+			text : '未来两周预计使用时间',
+			subtext : '数据来自于分布式PC日志处理系统Chubby'
 		},
 		tooltip : {
 			trigger : 'axis',
@@ -474,6 +530,20 @@ function forecastChart(day, points) {
 	});
 }
 
+function sortArray(points){
+	var array=[],temp;
+	array=points;
+	for(var i=0;i<array.length;i++){
+		for(var j=i+1;j<array.length;j++){
+			if(array[i]<array[j]){
+				temp=array[i];
+				array[i]=array[j];
+				array[j]=temp;
+			}
+		}
+	}
+	return array;
+}
 function webOnline(){
 	var myChart = echarts.init(document.getElementById("webOnline"));
 	// 显示标题，图例和空的坐标轴
@@ -582,8 +652,7 @@ function webBrowser(){
 				var myData = [];
 				for(var i=0;i<browserName.length;i++){
 					myData.push({value:visit_count[i],name:browserName[i]});
-				}
-				
+				}				
 				if (browserName.length == 0 ||visit_count.length==0) {
 					myChart.hideLoading();
 					$("#webBrowser").html("<img src=\"images/404.jpg\">");
@@ -780,13 +849,116 @@ function webNode2(){
 	});
 }
 
+function webNode2(){
+	var myChart = echarts.init(document.getElementById("webNode2"));
+	// 显示标题，图例和空的坐标轴
+	myChart.setOption({
+		title : {
+			text : '经常性访问的网页',
+			subtext : '数据来自于分布式PC日志处理系统Chubby'
+		},
+		tooltip : {
+			trigger : 'axis'
+		},
+		legend : {
+			data : [ '访问次数' ]
+		},
+		toolbox : {
+			show : true,
+			feature : {
+				mark : {
+					show : true
+				},
+				dataView : {
+					show : true,
+					readOnly : false
+				},
+				magicType : {
+					show : true,
+					type : [ 'line', 'bar' ]
+				},
+				restore : {
+					show : true
+				},
+				saveAsImage : {
+					show : true
+				}
+			}
+		},
+		calculable : true,
+		xAxis : [ {
+			type : 'value',
+			boundaryGap : [ 0, 0.01 ],
+			axisLabel : {
+				formatter : '{value} '
+			}
+		} ],
+		yAxis : [ {
+			type : 'category',
+			data : [ '梁健', '伍守增', '邬飞', '周宇' ]
+		} ],
+		series : [ {
+			name : '访问次数',
+			type : 'bar',
+			data : [ 3.2, 3.8, 4.0, 4.1 ],
+			itemStyle : {
+				normal : {
+				// color : 'rgba(0, 148, 219, 1)'
+				}
+			}
+		}, ]
+	});
+	myChart.showLoading();
+	// 异步加载数据
+	$.get("WebRecord?oType=401_4").done(function(rpdata) {
+		// alert(data);
+		var JSONObject = eval("(" + rpdata + ")");
+		var Sites = [],s=[];
+		s = JSONObject.Sites;
+		for(var i=s.length-1;i>=0;i--)
+			Sites.push(s[i]);
+		var Counts = [],c=[];
+		c = JSONObject.Counts;
+		for(var i=c.length-1;i>=0;i--)
+			Counts.push(c[i]);
+		if (Sites.length == 0 && Counts.length == 0) {
+			myChart.hideLoading();
+			$("#webNode2").html("<img src=\"images/404.jpg\">");
+		} else {
+			myChart.hideLoading();
+			// 填入数据
+			myChart.setOption({
+				yAxis : {
+					data : Sites
+				},
+				series : [ {
+					// 根据名字对应到相应的系列
+					name : '访问次数',
+					data : Counts
+				} ]
+			});
+		}
+	});
+}
+
+
 function webInfo(){
 	$("#webInfoBtn").click(function() {
 		//forecastChart(days[days.length - 1], points);
-		$("#webInfoDiv").fadeIn(2000);
-		webOnline();
-		webBrowser();
-		webNode1();
-		webNode2();
+		$.get("WebRecord?oType=test").done(function(rpdata) {
+			//alert(rpdata);
+			var rel='Error';
+			if(rpdata==rel){
+				$("#webInfoDiv").fadeIn(1000);
+				$("#webInfoDiv").html("<center><h3>没有找到与您相关的上网记录</h3></center>");
+			}
+			else{
+				$("#webInfoDiv").fadeIn(2000);
+				webOnline();
+				webBrowser();
+				webNode1();
+				webNode2();
+			}
+		})
 	})
 }

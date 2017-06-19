@@ -91,7 +91,7 @@ public class SocketServer {
 			// 建立连接
 			this.serverSocket = new ServerSocket(port);
 			Socket accpetSocket =null;
-			System.out.println("服务器已就绪");
+			System.out.println("---服务器已就绪---");
 			HeartBeat heartBeat=new HeartBeat(this.getIpInfo());
 			heartBeat.start();
 			while (true) {

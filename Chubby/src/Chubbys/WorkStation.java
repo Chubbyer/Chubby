@@ -37,7 +37,7 @@ public class WorkStation {
 		Object receiveData = null;
 		try {
 			this.serverSocket = new ServerSocket(port);
-			System.out.println("工作站服务器已就绪");
+			System.out.println("---工作站服务器已就绪---");
 			Socket accpetSocket = null;
 			HeartBeat heartBeat = new HeartBeat(null, 30 * 1000);
 			heartBeat.start();
