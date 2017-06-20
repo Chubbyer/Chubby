@@ -38,10 +38,10 @@ public class Analyzer implements Callable<Object> {
 	public Object call() throws Exception {
 		// TODO Auto-generated method stub
 		if (oType == 2) {
-			//System.out.println("Thread:" + threadNum);
+			// System.out.println("Thread:" + threadNum);
 			ArrayList<String> chubbyers = this.getChubbyers(user.getHost(),
 					threadNum);
-			// Thread.sleep(2000);			
+			// Thread.sleep(2000);
 			OrderChubbyer<String> orderChubbyer = new OrderChubbyer<String>(
 					threadNum, chubbyers);
 			return orderChubbyer;
@@ -50,55 +50,56 @@ public class Analyzer implements Callable<Object> {
 	}
 
 	/*
-	 * @Leung
-	 * 从数据库给定数量Event中分析所有的Chubbyer
-	 * 整个系统的核心所在
+	 * @Leung 从数据库给定数量Event中分析所有的Chubbyer 整个系统的核心所在
 	 */
 	public ArrayList<String> getChubbyers(String hostName, int threadNum) {
 		MongoDBJDBC mongoer = MongoDBJDBC.createMongoger(hostName);
 		int readLines = (int) (this.user.getLogLines());
-		int startIndex, endIndex;
-		startIndex = readLines / 10 * threadNum;
-		if (threadNum < 9) {
-			endIndex = readLines / 10 * (threadNum + 1);
-		} else {
-			endIndex = readLines;
-		}
-		mongoer.connectionMongoDB();
-		System.out.println("线程" + threadNum + "正在检索[" + startIndex + "-"
-				+ endIndex + "]");
-		ArrayList<Event> events = mongoer.findEvents("Security", startIndex,
-				endIndex);
-		mongoer.closeMongoDB();
-		if (events.size() > 0) {
-			ArrayList<String> chubbyers = new ArrayList<String>();
-			String openId = user.getOpen_Id();// 标记该用户的计算机的开机事件ID
-			String closeId = user.getClose_Id();// 标记该用户的计算机的关机事件ID
-			for (int i = 0; i < events.size(); i++) {
-				String chubbyer = null;
-				if (events.get(i).getEventID().equals(closeId)) {
-					String closeTime = events.get(i).getTimeCreated();
-					for (int j = i + 1; j < events.size(); j++) {
-						if (events.get(j).getEventID().equals(closeId)) {
-							for (int k = j; k > i; k--) {
-								if (events.get(k).getEventID().equals(openId)) {
-									String openTime = events.get(k)
-											.getTimeCreated();
-									chubbyer = "{'ot':'" + openTime
-											+ "','ct':'" + closeTime + "'}";
-									chubbyers.add(chubbyer);
-									break;
+		if (readLines > 0) {
+			int startIndex, endIndex;
+			startIndex = readLines / 10 * threadNum;
+			if (threadNum < 9) {
+				endIndex = readLines / 10 * (threadNum + 1);
+			} else {
+				endIndex = readLines;
+			}
+			mongoer.connectionMongoDB();
+			System.out.println("线程" + threadNum + "正在检索[" + startIndex + "-"
+					+ endIndex + "]");
+			ArrayList<Event> events = mongoer.findEvents("Security",
+					startIndex, endIndex);
+			mongoer.closeMongoDB();
+			if (events.size() > 0) {
+				ArrayList<String> chubbyers = new ArrayList<String>();
+				String openId = user.getOpen_Id();// 标记该用户的计算机的开机事件ID
+				String closeId = user.getClose_Id();// 标记该用户的计算机的关机事件ID
+				for (int i = 0; i < events.size(); i++) {
+					String chubbyer = null;
+					if (events.get(i).getEventID().equals(closeId)) {
+						String closeTime = events.get(i).getTimeCreated();
+						for (int j = i + 1; j < events.size(); j++) {
+							if (events.get(j).getEventID().equals(closeId)) {
+								for (int k = j; k > i; k--) {
+									if (events.get(k).getEventID()
+											.equals(openId)) {
+										String openTime = events.get(k)
+												.getTimeCreated();
+										chubbyer = "{'ot':'" + openTime
+												+ "','ct':'" + closeTime + "'}";
+										chubbyers.add(chubbyer);
+										break;
+									}
 								}
+								i = j;
+								break;
 							}
-							i = j;
-							break;
 						}
 					}
 				}
+				return chubbyers;
 			}
-			return chubbyers;
 		}
-		System.out.println("Analyer:线程"+threadNum+"执行失败");
+		System.out.println("Analyer:线程" + threadNum + "执行失败");
 		return null;
 
 	}

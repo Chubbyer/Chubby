@@ -186,32 +186,38 @@ function showChart3() {
 													})()
 												} ]
 									});
+							var showInfo='';
+							//$("#commentary3").html("AAAA");
+							var relInfo=[];
+							var opens=[];
+							for(var i=0;i<openPoints.length;i++){
+								opens.push(openPoints[i][1]);
+								}
+							//alert(opens);
+							relInfo=avg_Expect(opens);
+							//alert(relInfo);
+							if(relInfo[1]<=3)//标准差小于1
+								showInfo+="您开机的时点主要集中在"+relInfo[0]+",这说明您的作息时间比较规范。";
+							else
+								showInfo+="没有发现您通常的开机时间，这也许跟您的上课时间有关系。";
+							var closes=[];
+							for(var i=0;i<closePoints.length;i++){
+								if(closePoints[i][1]<6)
+									closes.push(closePoints[i][1]+24);
+								else
+									closes.push(closePoints[i][1]);
+								}
+							
+							relInfo=avg_Expect(closes);
+							if(relInfo[1]<=3){//标准差小于1
+								showInfo+="您关机机的时点主要集中在"+relInfo[0]+",这说明您通常在这个时间休息。";
+								if(relInfo[0]>=24)
+									showInfo+="Chubby提醒您早睡早起，有助于身体健康。";
+							}
+							else
+								showInfo+="没有发现您通常的关机时间，这很可能说明您对电脑依赖度较低。";
+							$("#commentary3").html(showInfo);
 						}
-						var showInfo='';
-						//$("#commentary3").html("AAAA");
-						var relInfo=[];
-						var opens=[];
-						for(var i=0;i<openPoints.length;i++)
-							opens.push(openPoints[i][1]);
-						//alert(opens);
-						relInfo=avg_Expect(opens);
-						//alert(relInfo);
-						if(relInfo[1]<=1)//标准差小于1
-							showInfo+="您开机的时点主要集中在"+relInfo[0]+",这说明您的作息时间比较规范。";
-						else
-							showInfo+="没有发现您通常的开机时间，这也许跟您的上课时间有关系。";
-						var closes=[];
-						for(var i=0;i<closePoints.length;i++)
-							closes.push(closePoints[i][1]);
-						relInfo=avg_Expect(closes);
-						if(relInfo[1]<=1){//标准差小于1
-							showInfo+="您关机机的时点主要集中在"+relInfo[0]+",这说明您通常在这个时间休息。";
-							if(relInfo[0]>=24)
-								showInfo+="Chubby提醒您早睡早起，有助于身体健康。";
-						}
-						else
-							showInfo+="没有发现您通常的关机时间，这很可能说明您对电脑依赖度较低。";
-						$("#commentary3").html(showInfo);
 					});
 }
 
@@ -849,108 +855,18 @@ function webNode2(){
 	});
 }
 
-function webNode2(){
-	var myChart = echarts.init(document.getElementById("webNode2"));
-	// 显示标题，图例和空的坐标轴
-	myChart.setOption({
-		title : {
-			text : '经常性访问的网页',
-			subtext : '数据来自于分布式PC日志处理系统Chubby'
-		},
-		tooltip : {
-			trigger : 'axis'
-		},
-		legend : {
-			data : [ '访问次数' ]
-		},
-		toolbox : {
-			show : true,
-			feature : {
-				mark : {
-					show : true
-				},
-				dataView : {
-					show : true,
-					readOnly : false
-				},
-				magicType : {
-					show : true,
-					type : [ 'line', 'bar' ]
-				},
-				restore : {
-					show : true
-				},
-				saveAsImage : {
-					show : true
-				}
-			}
-		},
-		calculable : true,
-		xAxis : [ {
-			type : 'value',
-			boundaryGap : [ 0, 0.01 ],
-			axisLabel : {
-				formatter : '{value} '
-			}
-		} ],
-		yAxis : [ {
-			type : 'category',
-			data : [ '梁健', '伍守增', '邬飞', '周宇' ]
-		} ],
-		series : [ {
-			name : '访问次数',
-			type : 'bar',
-			data : [ 3.2, 3.8, 4.0, 4.1 ],
-			itemStyle : {
-				normal : {
-				// color : 'rgba(0, 148, 219, 1)'
-				}
-			}
-		}, ]
-	});
-	myChart.showLoading();
-	// 异步加载数据
-	$.get("WebRecord?oType=401_4").done(function(rpdata) {
-		// alert(data);
-		var JSONObject = eval("(" + rpdata + ")");
-		var Sites = [],s=[];
-		s = JSONObject.Sites;
-		for(var i=s.length-1;i>=0;i--)
-			Sites.push(s[i]);
-		var Counts = [],c=[];
-		c = JSONObject.Counts;
-		for(var i=c.length-1;i>=0;i--)
-			Counts.push(c[i]);
-		if (Sites.length == 0 && Counts.length == 0) {
-			myChart.hideLoading();
-			$("#webNode2").html("<img src=\"images/404.jpg\">");
-		} else {
-			myChart.hideLoading();
-			// 填入数据
-			myChart.setOption({
-				yAxis : {
-					data : Sites
-				},
-				series : [ {
-					// 根据名字对应到相应的系列
-					name : '访问次数',
-					data : Counts
-				} ]
-			});
-		}
-	});
-}
-
 
 function webInfo(){
 	$("#webInfoBtn").click(function() {
 		//forecastChart(days[days.length - 1], points);
 		$.get("WebRecord?oType=test").done(function(rpdata) {
 			//alert(rpdata);
-			var rel='Error';
-			if(rpdata==rel){
+			var JSONObject = eval("(" + rpdata + ")");
+			var rel=JSONObject.status;
+			if(rel==2){
+				//alert("<center><h3>没有找到与您相关的上网记录</h3></center>");
 				$("#webInfoDiv").fadeIn(1000);
-				$("#webInfoDiv").html("<center><h3>没有找到与您相关的上网记录</h3></center>");
+				$("#webInfoDiv").html("<center><h5>没有找到与您相关的上网记录</h4></center>");
 			}
 			else{
 				$("#webInfoDiv").fadeIn(2000);

@@ -56,18 +56,24 @@ public class Tasker implements Callable<Object> {
 			return true;// 线程任务结束
 		}
 		ArrayList<String> chubbyers = this.getAllChubbyers(user);
-		ArrayList<String> finalChubbyers = new ArrayList<String>();
+		ArrayList<String> finalChubbyers = null;
 		// 调整时间顺序，改为从以前到现在
-		for (int i = chubbyers.size(); i > 0; i--) {
-			finalChubbyers.add(chubbyers.get(i - 1));
+		if (chubbyers != null) {
+			finalChubbyers = new ArrayList<String>();
+			for (int i = chubbyers.size(); i > 0; i--)
+				finalChubbyers.add(chubbyers.get(i - 1));
 		}
 		if (eType.equals(EC.E_301)) {
 			this.complete = true;
 			// 必须发送能够序列化的对象，这里的finalChubbyers是基于JSON格式的数组列表描述
 			System.out.println("E_301任务已处理完毕，正在发送···");
-			if (Net.sentData(socket, finalChubbyers))
+			if (finalChubbyers!=null){
 				// System.out.println(finalChubbyers.size());
-				System.out.println("E_301已发送成功"+chubbyers.size()+"条记录");
+				Net.sentData(socket, finalChubbyers);
+				System.out.println("E_301已发送成功" + chubbyers.size() + "条记录");
+			}
+			else
+				Net.sentData(socket, null);
 			return true;
 		}
 		if (eType.equals(EC.E_302)) {
@@ -122,14 +128,17 @@ public class Tasker implements Callable<Object> {
 		} else {
 			// 从原始的文件开始分析,这里涉及的数据量比较大
 			// 先将文件读入数据库
+			System.out.println(user.getHost());
 			mongoer = MongoDBJDBC.createMongoger(user.getHost());// 传入user的主机名
 			SAXParser saxParser = new SAXParser(mongoer, user.getHost(),
 					"Security");
-			SAXParser.writeToMongo(saxParser);// 执行结束后会将user.getFlag()=true
-			// 再从数据库分析，同user.getFlag()==true时
-			chubbyers = this.getChubbyers(user, comp);
+			boolean fileFlag = SAXParser.writeToMongo(saxParser);
+			if (fileFlag)// 执行结束后会将user.getFlag()=true
+				// 再从数据库分析，同user.getFlag()==true时
+				chubbyers = this.getChubbyers(user, comp);
+			else
+				return null;
 		}
-		// chubbyers = this.sortChubbyers(orderChubbyers);
 		return chubbyers;
 	}
 
@@ -143,8 +152,11 @@ public class Tasker implements Callable<Object> {
 		// 存放子线程的结果:OrderChubbyer<String>
 		ArrayList<OrderChubbyer<String>> orderChubbyers = new ArrayList<OrderChubbyer<String>>();
 		int threadNum = 10;// 开10个线程
+		MongoDBJDBC mongoer = MongoDBJDBC.createMongoger("User");
+		// 到User信息库当中去找能匹配userId的User
+		User newUser = mongoer.findUserInfo(user.getHost());
 		for (int i = 0; i < threadNum; i++) {
-			comp.submit(new Analyzer(EC.E_301, user, 2, i));
+			comp.submit(new Analyzer(EC.E_301, newUser, 2, i));
 		}
 		for (int i = 0; i < threadNum; i++) {
 			try {
@@ -153,22 +165,24 @@ public class Tasker implements Callable<Object> {
 				@SuppressWarnings("unchecked")
 				OrderChubbyer<String> orderChubbyer = (OrderChubbyer<String>) future
 						.get();
-				orderChubbyers.add(orderChubbyer);
+				if (orderChubbyer != null)
+					orderChubbyers.add(orderChubbyer);
 			} catch (InterruptedException | ExecutionException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		System.out.println("最终接受到" + orderChubbyers.size() + "个线程结果");
-		// System.out.println("顺序：");
-		// for (OrderChubbyer<String> orderChubbyer : orderChubbyers) {
-		// System.out.println("Order:" + orderChubbyer.order);
-		// }
-		ArrayList<String> finallChubbyers = this.sortChubbyers(orderChubbyers);
-		// 把finalChubbyers写入R_集合
-		MongoDBJDBC mongoer = MongoDBJDBC.createMongoger(user.getHost());
-		mongoer.insertChubbyers(user.getHost(), finallChubbyers);
-		return finallChubbyers;
+		if (orderChubbyers != null) {
+			System.out.println("最终接受到" + orderChubbyers.size() + "个线程结果");
+			ArrayList<String> finallChubbyers = this
+					.sortChubbyers(orderChubbyers);
+			// 把finalChubbyers写入R_集合
+			MongoDBJDBC mg = MongoDBJDBC.createMongoger(user.getHost());
+			mg.insertChubbyers(user.getHost(), finallChubbyers);
+			return finallChubbyers;
+		}
+		System.out.println("未获得结果");
+		return null;
 	}
 
 	/*
@@ -179,25 +193,28 @@ public class Tasker implements Callable<Object> {
 		ArrayList<String> al = new ArrayList<String>();
 		int minIndex = 0;
 		int size = orderChubbyers.size();
-		for (int i = 0; i < size - 1; i++) {
-			// 每一次找到线程池里线程序号最小的那个
-			int minOrder = orderChubbyers.get(0).order;
-			for (int j = 0; j < orderChubbyers.size(); j++) {
-				if (orderChubbyers.get(j).order < minOrder) {
-					minOrder = orderChubbyers.get(j).order;
-					minIndex = j;
+		if (size > 0) {
+			for (int i = 0; i < size - 1; i++) {
+				// 每一次找到线程池里线程序号最小的那个
+				int minOrder = orderChubbyers.get(0).order;
+				for (int j = 0; j < orderChubbyers.size(); j++) {
+					if (orderChubbyers.get(j).order < minOrder) {
+						minOrder = orderChubbyers.get(j).order;
+						minIndex = j;
+					}
 				}
+				// System.out.println("size:" + orderChubbyers.size());
+				// System.out.println("minIndex:" + minIndex);
+				al.addAll(orderChubbyers.get(minIndex).chubbyers);
+				orderChubbyers.remove(minIndex);
+				minIndex = 0;
 			}
-			// System.out.println("size:" + orderChubbyers.size());
-			// System.out.println("minIndex:" + minIndex);
-			al.addAll(orderChubbyers.get(minIndex).chubbyers);
-			orderChubbyers.remove(minIndex);
-			minIndex = 0;
+			// 剩下的最后一个就是线程序号最大的那个
+			al.addAll(orderChubbyers.get(0).chubbyers);
+			// System.out.println(al.size());
+			return al;
 		}
-		// 剩下的最后一个就是线程序号最大的那个
-		al.addAll(orderChubbyers.get(0).chubbyers);
-		// System.out.println(al.size());
-		return al;
+		return null;
 	}
 
 	public static void main(String[] args) {

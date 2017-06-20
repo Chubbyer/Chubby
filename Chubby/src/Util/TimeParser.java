@@ -43,6 +43,8 @@ public class TimeParser {
 			stratDate = formatter.parse(startTime);// 开机时间
 			endDate = formatter.parse(endTime);// 关机时间
 			point = (endDate.getTime() - stratDate.getTime()) / 3600000.0;// 把毫秒调整为以小时衡量的指标
+			if(point<0)
+				point=0;
 			timeLong = stratDate.getTime() + 1000 * 60 * 60 * 8;// 调整时区，加8个小时
 			stratDate = new Date(timeLong);
 			// return sdf.format(date);

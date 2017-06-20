@@ -50,6 +50,12 @@ public class WebRecord extends HttpServlet {
 		MongoDBJDBC mongoer = new MongoDBJDBC("User");
 		User user = mongoer.findUserInfo(serCnondition);
 		mongoer = new MongoDBJDBC(user.getHost());
+		if(optType.equals("test")&&user.getWeb_Flag()){
+			out.println("{\"status\":1}");			
+		}
+		else {
+			out.println("{\"status\":2}");//System.out.println("未找到相关用户的数据");
+		}
 		if (user.getWeb_Flag()) {
 			// 上网时间
 			if (optType.equals(EC.E_401_1)) {
@@ -129,10 +135,7 @@ public class WebRecord extends HttpServlet {
 				out.println(jsonStr);
 			}
 		}
-		else{
-			out.println("Error");
-			System.out.println("未找到相关用户的数据");
-		}
+		
 		out.flush();
 		out.close();
 	}

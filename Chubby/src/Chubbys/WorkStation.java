@@ -204,22 +204,7 @@ public class WorkStation {
 		// Timing timing = new Timing(3000, string);
 		// timing.start();
 		// System.out.println("____" + string.toString());
-		DataHost host1 = new DataHost("109.12", 10001, 11);
-		DataHost host2 = new DataHost("109.12", 10002, 12);
-		DataHost host3 = new DataHost("109.12", 10003, 13);
-		DataHost host4 = new DataHost("109.12", 10004, -1);
-		ArrayList<DataHost> dataHosts = new ArrayList<DataHost>();
-		dataHosts.add(host1);
-		dataHosts.add(host2);
-		dataHosts.add(host3);
-		dataHosts.add(host4);
-		// WorkStation ws = new WorkStation(10000);
-		// dataHosts = ws.sortHostPriority(dataHosts);
-		// for (DataHost dataHost : dataHosts) {
-		// System.out.println(dataHost.port);
-		// }
-		// Net.sendDataByUDP("172.16.70.201", 9090, "sss");
-		WorkStation ws = new WorkStation(10000);
+		WorkStation ws = new WorkStation(ChubbyConfig.STATION_PORT);
 		ws.action();
 		// HeartBeat heartBeat = new HeartBeat(null, 5 * 1000);
 		// heartBeat.start();

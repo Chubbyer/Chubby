@@ -479,9 +479,9 @@ public class MongoDBJDBC {
 		// System.out.println("qq");
 		// mongoer.closeMongoDB();
 
-		// MongoDBJDBC mongoer = new MongoDBJDBC("Log");
-		// mongoer.updateUserInfo("Leung", "LogLines", 15000);
-		// mongoer.connectionMongoDB();
+		 MongoDBJDBC mongoer = new MongoDBJDBC("WuShouZeng");
+		 mongoer.updateUserInfo("WuShouZeng", "Flag", false);
+		 mongoer.connectionMongoDB();
 		// mongoer.writeLog("Leung", "2017-05-28 10:00:00");
 		// System.out.println(mongoer.findUserInfo("Leung").getName());
 	}

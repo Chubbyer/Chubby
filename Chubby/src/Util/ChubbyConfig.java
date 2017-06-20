@@ -15,68 +15,68 @@ public class ChubbyConfig {
 		MongoDBJDBC mongoer = new MongoDBJDBC("User");
 		mongoer.connectionMongoDB();
 
-		mongoer.insertUser(1, "¡∫Ω°", "631406010412", "Win10", "Leung",
-				(double) 15000, false, false, "4798", "4647",false,0);
+//		mongoer.insertUser(1, "¡∫Ω°", "631406010412", "Win10", "Leung",
+//				(double) 0, false, false, "4798", "4647",false,0);
 		
 		mongoer.insertUser(2, "¿ÓΩ‹", "631406010402", "Win8", "LiJie",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(3, "—Ó¡÷", "631406010404", "Win8", "YangLin",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(4, "¡ıº—", "631406010405", "Win10", "LiuJia",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(5, "÷‹”Ó", "631406010406", "Win7", "ZhouYu",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(6, "¡ı’—∫Í", "631406010408", "Win8", "LiuZhaoHong",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(7, "∂≠∏’", "631406010409", "Win10", "DongGang",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(8, "ŒÈ ÿ‘ˆ", "631406010410", "Win7", "WuShouZeng",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(9, "¿Óﬁ»¥Ô", "631406010413", "Win7", "LiYiDa",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(10, "’≈œÈ", "631406010415", "Win7", "ZhangXiang",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(11, "≥¬æ¢", "631406010416", "Win8", "ChenJin",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(12, "’≈¡¡", "631406010418", "Win10", "ZhangLiang",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(13, "≥¬–À", "631406010419", "Win10", "Chenxin",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(14, "π®“„", "631406010422", "Win7", "GonYi",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(15, "¬ﬁ“’", "631406010423", "Win10", "LuoYi",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(16, "≥¬≥Ø—Ù", "631406010424", "Win10", "ChenZhaoYang",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(17, "œÚΩ°", "631406010426", "Win8", "XiangJian",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(18, "≈∑–°∑Â", "631406010427", "Win10", "OuXiaoFeng",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(19, "¡ŒÕ˙", "6314060104128", "Win10", "LiaoWang",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(20, "⁄˘∑…", "631406010429", "Win7", "WuFei",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 		
 		mongoer.insertUser(21, "≥¬Ω®¥®", "631406010430", "Win10", "ChenJianChuan",
-				(double) 15000, false, false, "4624", "4647",false,0);
+				(double) 0, false, false, "4624", "4647",false,0);
 				
 		mongoer.closeMongoDB();
 	}

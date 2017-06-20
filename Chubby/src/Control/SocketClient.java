@@ -161,26 +161,14 @@ public class SocketClient implements Callable<Object> {
 
 	public static void main(String[] args) {
 		SocketClient sClient = new SocketClient();
-
-		try {
-			System.out.println(sClient.getAvailableHost());
-			Thread.sleep(2000);
-			System.out.println(sClient.getAvailableHost());
-			Thread.sleep(2000);
-			System.out.println(sClient.getAvailableHost());
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
 		// System.out.println(sClient.checkConnection());
 		// @SuppressWarnings("unchecked")
-		// ArrayList<String> chubbyers = (ArrayList<String>) sClient
-		// .getOneOverview("Leung");
-		// System.out.println(chubbyers.size());
-		// // for (int i = 0; i < 50; i++) {
-		// // System.out.println(chubbyers.get(i));
-		// // }
+		 ArrayList<String> chubbyers = (ArrayList<String>) sClient
+		 .getOneOverview("WuShouZeng");
+		 System.out.println(chubbyers.size());
+		  for (int i = 0; i < 50; i++) {
+		  System.out.println(chubbyers.get(i));
+		  }
 		// ArrayList<Chubbyer> chubbyerList = new ArrayList<Chubbyer>();
 		// // 得到每天的开关机时点
 		// chubbyerList = ChubbyerParser.getUseTimeScatter(chubbyers);
