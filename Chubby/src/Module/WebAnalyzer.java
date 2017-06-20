@@ -178,8 +178,8 @@ public class WebAnalyzer {
 		webAnalyzer.nodesCount();
 		System.out.println(webAnalyzer.onlineTimes.size());
 		MongoDBJDBC mongoer=new MongoDBJDBC("Leung");
-		//mongoer.writeOnlineTimes("WebOnline", webAnalyzer.onlineTimes);
-		//mongoer.writeBrowserInfo("WebBrowser", webAnalyzer.browsers);
+		mongoer.writeOnlineTimes("WebOnline", webAnalyzer.onlineTimes);
+		mongoer.writeBrowserInfo("WebBrowser", webAnalyzer.browsers);
 		webAnalyzer.webNodes1=WebAnalyzer.sortChubbyers(webAnalyzer.webNodes1);
 		mongoer.writeNodes("WebNode1", webAnalyzer.webNodes1);
 		webAnalyzer.webNodes2=WebAnalyzer.sortChubbyers(webAnalyzer.webNodes2);

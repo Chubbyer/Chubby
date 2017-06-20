@@ -67,12 +67,11 @@ public class Tasker implements Callable<Object> {
 			this.complete = true;
 			// 必须发送能够序列化的对象，这里的finalChubbyers是基于JSON格式的数组列表描述
 			System.out.println("E_301任务已处理完毕，正在发送···");
-			if (finalChubbyers!=null){
+			if (finalChubbyers != null) {
 				// System.out.println(finalChubbyers.size());
 				Net.sentData(socket, finalChubbyers);
 				System.out.println("E_301已发送成功" + chubbyers.size() + "条记录");
-			}
-			else
+			} else
 				Net.sentData(socket, null);
 			return true;
 		}
@@ -177,8 +176,10 @@ public class Tasker implements Callable<Object> {
 			ArrayList<String> finallChubbyers = this
 					.sortChubbyers(orderChubbyers);
 			// 把finalChubbyers写入R_集合
-			MongoDBJDBC mg = MongoDBJDBC.createMongoger(user.getHost());
-			mg.insertChubbyers(user.getHost(), finallChubbyers);
+			if (finallChubbyers != null) {
+				MongoDBJDBC mg = MongoDBJDBC.createMongoger(user.getHost());
+				mg.insertChubbyers(user.getHost(), finallChubbyers);
+			}
 			return finallChubbyers;
 		}
 		System.out.println("未获得结果");

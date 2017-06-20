@@ -299,7 +299,7 @@ public class ChubbyerParser {
 	 */
 	public static ArrayList<Chubbyer> remoneRepChubbyers(
 			ArrayList<Chubbyer> chubbyers) {
-		if (chubbyers == null)
+		if (chubbyers == null||chubbyers.size()<1)
 			return null;
 		ArrayList<Chubbyer> finalChubbyers1 = new ArrayList<Chubbyer>();
 		DateFormat df = new SimpleDateFormat("yyyy/MM/dd");

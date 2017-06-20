@@ -53,7 +53,7 @@ public class WebRecord extends HttpServlet {
 		if(optType.equals("test")&&user.getWeb_Flag()){
 			out.println("{\"status\":1}");			
 		}
-		else {
+		if(optType.equals("test")&&!user.getWeb_Flag()){
 			out.println("{\"status\":2}");//System.out.println("未找到相关用户的数据");
 		}
 		if (user.getWeb_Flag()) {

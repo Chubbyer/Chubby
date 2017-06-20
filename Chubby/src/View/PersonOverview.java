@@ -70,8 +70,9 @@ public class PersonOverview extends HttpServlet {
 					request.getSession().setAttribute("chubbyerStrings",
 							chubbyerStrings);
 					// 加工getOneOverview函数的结果，方便在页面上展示EC-301_1任务的结果,得到每天使用多少小时
-
+					//System.out.println(chubbyerStrings);
 					chubbyers = ChubbyerParser.getUseTime(chubbyerStrings);
+					
 					chubbyers = ChubbyerParser.remoneRepChubbyers(chubbyers);
 					chubbyers = ChubbyerParser.supplementChubbyers(chubbyers);
 					// 把ArrayList转换成JSON
@@ -88,6 +89,8 @@ public class PersonOverview extends HttpServlet {
 					// 向前端发送JSON串
 					// out.println(jsonStr);
 					System.out.println(optType + "处理完毕");
+					request.getSession().setAttribute("Error_301",
+							null);
 				} else {
 					System.out.println(optType + "未获得数据");
 					request.getSession().setAttribute("Error_301",
@@ -113,7 +116,7 @@ public class PersonOverview extends HttpServlet {
 			String jsonStr = "{\"morning\":0,\"afternoon\":0,\"evening\":0}";
 			String SerInfo = (String) request.getSession().getAttribute(
 					"Error_301");
-			if (!SerInfo.equals(serCnondition)) {
+			if (!serCnondition.equals(SerInfo)) {
 				try {
 					@SuppressWarnings("unchecked")
 					ArrayList<String> chubbyerStrings = (ArrayList<String>) request
@@ -142,7 +145,6 @@ public class PersonOverview extends HttpServlet {
 			}
 			System.out.println("已反馈");
 			out.println(jsonStr);
-
 		}
 		if (optType.equals(EC.E_301_3)) {
 			// 处理EC.E_301_3,数据应该展示在第3个图表中（散点图）
@@ -152,7 +154,7 @@ public class PersonOverview extends HttpServlet {
 			String jsonStr = "{\"openPoints\":[],\"closePoints\":[]}";
 			String SerInfo = (String) request.getSession().getAttribute(
 					"Error_301");
-			if (!SerInfo.equals(serCnondition))
+			if (!serCnondition.equals(SerInfo))
 				try {
 					ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
 					@SuppressWarnings("unchecked")

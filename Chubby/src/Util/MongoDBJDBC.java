@@ -281,7 +281,7 @@ public class MongoDBJDBC {
 	 */
 	public void insertChubbyers(String host, ArrayList<String> cbs) {
 		ArrayList<Document> documents = new ArrayList<Document>();
-		if (this.connectionMongoDB() && this.mongoClient != null) {
+		if (this.connectionMongoDB() && this.mongoClient != null&&cbs.size()>0) {
 			for (int i = 0; i < cbs.size(); i++) {
 				documents.add(new Document("point", cbs.get(i)));
 			}
@@ -479,8 +479,8 @@ public class MongoDBJDBC {
 		// System.out.println("qq");
 		// mongoer.closeMongoDB();
 
-		 MongoDBJDBC mongoer = new MongoDBJDBC("WuShouZeng");
-		 mongoer.updateUserInfo("WuShouZeng", "Flag", false);
+		 MongoDBJDBC mongoer = new MongoDBJDBC("Leung");
+		 mongoer.updateUserInfo("Leung", "R_Flag", false);
 		 mongoer.connectionMongoDB();
 		// mongoer.writeLog("Leung", "2017-05-28 10:00:00");
 		// System.out.println(mongoer.findUserInfo("Leung").getName());

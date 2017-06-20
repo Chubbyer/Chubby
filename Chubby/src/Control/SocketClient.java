@@ -54,18 +54,25 @@ public class SocketClient implements Callable<Object> {
 		if (this.taskType.equals(EC.E_301)) {
 			ArrayList<String> chubbyerString = (ArrayList<String>) this
 					.getOneOverview(serCondition);
+			if(chubbyerString.size()==0)
+				return null;
 			return chubbyerString;
 		}
 		if (this.taskType.equals(EC.E_301_1)) {
 			ArrayList<Chubbyer> chubbyers = new ArrayList<Chubbyer>();
 			ArrayList<String> chubbyerString = (ArrayList<String>) this
 					.getOneOverview(serCondition);
+			if (chubbyerString == null)
+				return null;
 			// 加工getOneOverview函数的结果，方便在页面上展示EC-301_1任务的结果,得到每天使用多少小时
-			chubbyers = ChubbyerParser.getUseTime(chubbyerString);
-			chubbyers = ChubbyerParser.remoneRepChubbyers(chubbyers);
-			chubbyers = ChubbyerParser.supplementChubbyers(chubbyers);
-			System.out.println("SocketClient已返回数据");
-			return chubbyers;
+			else {
+				chubbyers = ChubbyerParser.getUseTime(chubbyerString);
+				chubbyers = ChubbyerParser.remoneRepChubbyers(chubbyers);
+				chubbyers = ChubbyerParser.supplementChubbyers(chubbyers);
+				System.out.println("SocketClient已返回数据");
+				return chubbyers;
+			}
+
 		}
 		if (this.taskType.equals(EC.E_301_2)) {
 			ArrayList<String> chubbyerString = (ArrayList<String>) this
@@ -97,7 +104,7 @@ public class SocketClient implements Callable<Object> {
 				int port = ChubbyConfig.STATION_PORT;
 				System.out.println("正在向工作站请求可用的数据服务器");
 				this.socket = new Socket(serverIP, port);
-				String data = SC.CLIENT_REQUEST+EC.E_301;
+				String data = SC.CLIENT_REQUEST + EC.E_301;
 				Net.sentData(socket, data);// 发送表示请求连接的字段
 				returnStr = Net.acceptData(socket);// 收到服务端的回应
 				break;
@@ -163,12 +170,13 @@ public class SocketClient implements Callable<Object> {
 		SocketClient sClient = new SocketClient();
 		// System.out.println(sClient.checkConnection());
 		// @SuppressWarnings("unchecked")
-		 ArrayList<String> chubbyers = (ArrayList<String>) sClient
-		 .getOneOverview("WuShouZeng");
-		 System.out.println(chubbyers.size());
-		  for (int i = 0; i < 50; i++) {
-		  System.out.println(chubbyers.get(i));
-		  }
+		ArrayList<String> chubbyers = (ArrayList<String>) sClient
+				.getOneOverview("ChenJin");
+		//ArrayList<String> chubbyers =null;
+		System.out.println(chubbyers.size());
+//		for (int i = 0; i < 50; i++) {
+//			System.out.println(chubbyers.get(i));
+//		}
 		// ArrayList<Chubbyer> chubbyerList = new ArrayList<Chubbyer>();
 		// // 得到每天的开关机时点
 		// chubbyerList = ChubbyerParser.getUseTimeScatter(chubbyers);
